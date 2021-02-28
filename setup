@@ -1,0 +1,12 @@
+#!/bin/zsh
+set -eux -o pipefail
+
+which pip || sudo apt-get install -y python3-pip
+which virtualenv || pip3 install --user --upgrade virtualenv
+
+cd ${0:a:h}
+[[ -d .venv ]] || virtualenv .venv
+[[ -f .venv/pip.conf ]] || echo '[global]\nuser = false' > .venv/pip.conf
+path=(${0:a:h}/.venv/bin $path)
+pip install --upgrade pip-tools
+pip-sync
