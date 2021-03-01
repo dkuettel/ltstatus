@@ -6,11 +6,11 @@ monitor = RateLimitedMonitors(
         monitors.datetime.Monitor(),
         monitors.redshift.Monitor(),
         monitors.dropbox.Monitor(),
+        monitors.bluetooth.Monitor(),
         RegularGroupMonitor(
             monitors=[
                 monitors.cpu.Monitor(),
                 monitors.diskspace_alerts.Monitor(),
-                monitors.bluetooth.Monitor(),
                 monitors.spotify.Monitor(),
                 monitors.sound.Monitor(),
             ],
