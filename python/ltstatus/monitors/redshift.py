@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from subprocess import PIPE, Popen
 
-from ltstatus import ThreadedMonitor
+from ltstatus import State, ThreadedMonitor
 from ltstatus.tools import ffield
 
 
@@ -59,4 +59,4 @@ class Monitor(ThreadedMonitor):
                     content = f"redshift@{brightness}"
             else:
                 content = "redshift off"
-            self.queue.put({self.name: content})
+            self.queue.put(State.from_one(self.name, content))

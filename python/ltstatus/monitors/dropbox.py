@@ -4,7 +4,7 @@ from io import FileIO
 from pathlib import Path
 from socket import AF_UNIX, SOCK_STREAM, socket as new_socket
 
-from ltstatus import ThreadedMonitor
+from ltstatus import State, ThreadedMonitor
 from ltstatus.tools import ffield
 
 
@@ -57,9 +57,6 @@ class Monitor(ThreadedMonitor):
                     self.queue.put({self.name: content})
                     self.exit.wait(self.interval)
         except FileNotFoundError:
-            self.queue.put({self.name: None})
+            self.queue.put(State.from_one(self.name, None))
         except ConnectionRefusedError:
-            self.queue.put({self.name: "?"})
-        except:
-            self.queue.put({self.name: "!"})
-            raise
+            self.queue.put(State.from_one(self.name, "?"))

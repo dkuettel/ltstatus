@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import psutil
 
-from ltstatus import CallbackMonitor
+from ltstatus import CallbackMonitor, State
 
 
 @dataclass
@@ -18,4 +18,4 @@ class Monitor(CallbackMonitor):
         content = (
             f"{compute:2}% {round(memory.used/2**30)}/{round(memory.total/2**30)}G"
         )
-        return {self.name: content}
+        return State.from_one(self.name, content)

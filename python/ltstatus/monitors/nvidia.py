@@ -8,7 +8,7 @@ from pynvml import (
     nvmlShutdown,
 )
 
-from ltstatus import ThreadedMonitor
+from ltstatus import State, ThreadedMonitor
 
 
 # TODO this should be CallbackMonitor, probably
@@ -29,6 +29,6 @@ class Monitor(ThreadedMonitor):
             compute = nvmlDeviceGetUtilizationRates(handle)
             # using GiB=2**30 instead of GB=1e9, because thats also what nvidia-smi shows
             content = f"{compute.gpu:2}% {round(memory.used/2**30)}/{round(memory.total/2**30)}G"
-            self.queue.put({self.name: content})
+            self.queue.put(State.from_one(self.name, content))
             self.exit.wait(self.interval)
         nvmlShutdown()

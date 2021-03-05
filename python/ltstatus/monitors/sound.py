@@ -1,9 +1,8 @@
 import re
 from dataclasses import dataclass
-from subprocess import CalledProcessError
 from typing import Dict
 
-from ltstatus import CallbackMonitor
+from ltstatus import CallbackMonitor, State
 from ltstatus.tools import ffield, run_cmd
 
 re_sound = re.compile(
@@ -26,15 +25,12 @@ class Monitor(CallbackMonitor):
 
     def get_updates(self):
 
-        try:
-            match = re_sound.search(run_cmd("pacmd list-sinks"))
-            if match is None:
-                content = "?"
-            else:
-                sign = "=" if match["muted"] == "no" else "#"
-                name = match["name"]
-                name = self.aliases.get(name, name)
-                content = f"{name}{sign}{match['volume']}"
-        except (CalledProcessError, StopIteration):
+        match = re_sound.search(run_cmd("pacmd list-sinks"))
+        if match is None:
             content = "?"
-        return {self.name: content}
+        else:
+            sign = "=" if match["muted"] == "no" else "#"
+            name = match["name"]
+            name = self.aliases.get(name, name)
+            content = f"{name}{sign}{match['volume']}"
+        return State.from_one(self.name, content)

@@ -4,7 +4,7 @@ from typing import Dict
 
 from psutil import disk_usage
 
-from ltstatus import CallbackMonitor
+from ltstatus import CallbackMonitor, State
 from ltstatus.tools import ffield
 
 
@@ -22,7 +22,7 @@ class Monitor(CallbackMonitor):
     )
 
     def get_updates(self):
-        return {self.name: self.get_content()}
+        return State.from_one(self.name, self.get_content())
 
     def get_content(self) -> str:
 

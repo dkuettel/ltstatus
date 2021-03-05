@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from subprocess import CalledProcessError
 
-from ltstatus import CallbackMonitor
+from ltstatus import CallbackMonitor, State
 from ltstatus.tools import run_cmd
 
 
@@ -17,4 +17,4 @@ class Monitor(CallbackMonitor):
             content = run_cmd(f"xdotool getwindowname {window_id}").strip()
         except CalledProcessError:
             content = None
-        return {self.name: content}
+        return State.from_one(self.name, content)

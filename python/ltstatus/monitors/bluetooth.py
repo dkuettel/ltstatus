@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from subprocess import PIPE, CalledProcessError, Popen
 
-from ltstatus import CallbackMonitor, ThreadedMonitor
+from ltstatus import CallbackMonitor, ThreadedMonitor, State
 from ltstatus.tools import run_cmd
 
 
@@ -29,7 +29,7 @@ class PollingMonitor(CallbackMonitor):
 
         except CalledProcessError:
             content = "?"
-        return {self.name: content}
+        return State.from_one(self.name, content)
 
 
 @dataclass
