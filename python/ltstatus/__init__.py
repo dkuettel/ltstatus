@@ -10,7 +10,7 @@ from queue import Empty, Queue
 from threading import Event, Thread
 from typing import Dict, Iterable, List, Optional, Union
 
-from ltstatus.tools import ffield
+from ltstatus.tools import ffield, run_cmd
 
 
 @dataclass
@@ -153,19 +153,15 @@ class RegularGroupMonitor(ThreadedMonitor):
             self.exit.wait(self.interval)
 
 
-class Status:
-    """ a status transforms a ThreadedMonitor's updates into output of a certain form """
-
-
 @dataclass
-class StdoutStatus(Status):
-    """ on every update, ouptut full state on a single line, eg, the way tmux consumes an external status line """
+class Status:
+    """ a status transforms a ThreadedMonitor's updates into formatted output """
 
     monitor: ThreadedMonitor
     order: List[str] = ffield(list)
-    separator: str = " "
-    prefix: str = "["
-    postfix: str = "]"
+    separator: str = ", "
+    prefix: str = ""
+    postfix: str = ""
     waiting: str = "..."
 
     # TODO we never exit, no exit control
@@ -177,7 +173,11 @@ class StdoutStatus(Status):
         state = State()
         while True:
             state.update(queue.get())
-            print(self.render_state(state), flush=True)
+            self.show(self.render_state(state))
+
+    def show(self, status: str):
+        """ make the updated status visible """
+        raise NotImplementedError()
 
     def render_state(self, state: State):
         segments = [
@@ -194,3 +194,29 @@ class StdoutStatus(Status):
             return self.prefix + f"{key} failed" + self.postfix
         else:
             raise Exception(f"wrong type {type(value)}")
+
+
+@dataclass
+class StdoutStatus(Status):
+    """ output full line to stdout, eg, the way tmux consumes an external status line """
+
+    separator: str = " "
+    prefix: str = "["
+    postfix: str = "]"
+    waiting: str = "..."
+
+    def show(self, status: str):
+        print(status, flush=True)
+
+
+@dataclass
+class XsetrootStatus(Status):
+    """ send the status to 'xsetroot -name {status}', eg, the way dwm consumes an external status line """
+
+    separator: str = "|"
+    prefix: str = " "
+    postfix: str = " "
+    waiting: str = "..."
+
+    def show(self, status: str):
+        run_cmd(["xsetroot", "-name", status])
