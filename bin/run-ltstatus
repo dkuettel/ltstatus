@@ -1,0 +1,22 @@
+#!/bin/zsh
+set -eu -o pipefail
+
+# > run-ltstatus python-script.py
+# or using #!run-ltstatus on an executable python script
+#
+# will activate the ltstatus virtual env
+# and then run the script
+# with all remaining options fowarded
+#
+# note:
+# usually used to run your own status configuration
+# typically your status configuration is just a simple script, no additional
+# but if you want, it can take additional arguments to be configurable
+# it's up to your own code to parse that
+
+base=${0:a:h}/..
+base=${base:a}
+
+export path=($base/.venv/bin $path)
+export PYTHONPATH=$base/python
+python $@[1,-1]

@@ -1,3 +1,5 @@
+#!bin/run-ltstatus
+
 from ltstatus import RateLimitedMonitors, RegularGroupMonitor, StdoutStatus, monitors
 
 monitor = RateLimitedMonitors(
