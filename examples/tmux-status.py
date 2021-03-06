@@ -1,23 +1,5 @@
-#!bin/run-ltstatus
-
-""" tmux example
-
-1) write your own tmux-status.py file similar to this file
-   note: tmux does not update the status more than 1/sec no matter what
-
-2) add it to the tmux configuration, some possibilities are:
-
-   a) set-option -g status-right ' #(run-ltstatus path/to/tmux-status.py) '
-      and make sure ltstatus is in the path, or type out the full path
-
-   b) set-option -g status-right ' #(path/to/tmux-status.py) '
-      and make tmux-status.py executable
-      by using a hashbang #!run-ltstatus or similar
-
-   bin/run-ltstatus makes sure you run it in the correct virtual env
-   but you can take care of that yourself and then do without run-ltstatus
-
-"""
+#!bin/ltstatus
+from pathlib import Path
 
 from ltstatus import RateLimitedMonitors, RegularGroupMonitor, StdoutStatus, monitors
 
@@ -30,7 +12,13 @@ monitor = RateLimitedMonitors(
             interval=1,
             monitors=[
                 monitors.cpu.Monitor(),
-                monitors.diskspace_alerts.Monitor(),
+                monitors.diskspace_alerts.Monitor(
+                    limits={
+                        Path("/var/lib/docker"): 2.0,
+                        Path("/"): 10.0,
+                        Path("~"): 5.0,
+                    },
+                ),
             ],
         ),
     ],
@@ -44,6 +32,10 @@ status = StdoutStatus(
         "cpu",
         "nvidia",
     ],
+    separator=" ",
+    prefix="[",
+    postfix="]",
+    waiting="...",
 )
 
 status.run()

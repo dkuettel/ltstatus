@@ -17,11 +17,7 @@ re_sound = re.compile(
 @dataclass
 class Monitor(CallbackMonitor):
     name: str = "sound"
-    aliases: Dict[str, str] = ffield(
-        lambda: {
-            "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
-        }
-    )
+    aliases: Dict[str, str] = ffield(dict)
 
     def get_updates(self):
 

@@ -1,8 +1,8 @@
 #!/bin/zsh
 set -eu -o pipefail
 
-# > run-ltstatus python-script.py
-# or using #!run-ltstatus on an executable python script
+# > ltstatus lt-config.py
+# or using #!ltstatus on an executable python script
 #
 # will activate the ltstatus virtual env
 # and then run the script

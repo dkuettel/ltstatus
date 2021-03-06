@@ -12,14 +12,11 @@ from ltstatus.tools import ffield
 @dataclass
 class Monitor(CallbackMonitor):
     name: str = "diskspace-alerts"
-    # map folders to minimum size (alert when actual < limit)
-    limits: Dict[Path, float] = ffield(
-        lambda: {
-            Path("/var/lib/docker"): 2.0,
-            Path("/"): 10.0,
-            Path("/home/dkuettel"): 5.0,
-        }
-    )
+    # map folders to minimum size in GB (alert when actual < limit)
+    limits: Dict[Path, float] = ffield(dict)
+
+    def __post_init__(self):
+        self.limits = {path.expanduser(): limit for path, limit in self.limits.items()}
 
     def get_updates(self):
         return State.from_one(self.name, self.get_content())
