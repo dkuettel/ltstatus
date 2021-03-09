@@ -7,7 +7,9 @@ monitor = RateLimitedMonitors(
     monitors=[
         monitors.nvidia.Monitor(),
         monitors.datetime.Monitor(),
-        monitors.redshift.Monitor(),
+        monitors.redshift.Monitor(
+            format=monitors.redshift.format_period,
+        ),
         monitors.dropbox.Monitor(),
         monitors.bluetooth.Monitor(),
         RegularGroupMonitor(
