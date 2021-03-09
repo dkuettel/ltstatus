@@ -101,6 +101,17 @@ class ThreadedMonitor(BaseMonitor):
         self.exit = None
         self.thread = None
 
+    def test(self):
+        """ run unthreaded with a mocked queue for debugging """
+
+        class QueueMock:
+            def put(self, *args, **kwargs):
+                pass
+
+        self.queue = QueueMock()
+        self.exit = Event()
+        self.run()
+
 
 @dataclass
 class RateLimitedMonitors(ThreadedMonitor):
