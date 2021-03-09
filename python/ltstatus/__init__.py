@@ -10,7 +10,7 @@ from queue import Empty, Queue
 from threading import Event, Thread
 from typing import Dict, Iterable, List, Optional, Union
 
-from ltstatus.tools import ffield, run_cmd
+from ltstatus.tools import ffield, iter_available_from_queue, run_cmd
 
 
 @dataclass
@@ -57,12 +57,8 @@ class StatesQueue:
     def get_merged(self) -> State:
         """ wait until at least one message and then return all available states merged """
         state = State()
-        state.update(self.queue.get())
-        try:
-            while True:
-                state.update(self.queue.get_nowait())
-        except Empty:
-            pass
+        for updates in iter_available_from_queue(self.queue):
+            state.update(updates)
         return state
 
 
