@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from ltstatus import State, ThreadedMonitor
-from ltstatus.tools import ffield, iter_available_from_queue, tail_file
+from ltstatus.tools import ffield, tail_file
 
 
 @dataclass
@@ -70,7 +70,7 @@ class Monitor(ThreadedMonitor):
         with tail_file(self.log_file.expanduser()) as log:
             while not self.exit.is_set():
                 # TODO we never check self.exit while waiting for data, need to make sure the read fails in that case?
-                for line in iter_available_from_queue(log):
+                for line in log.get_some_lines():
                     for p in parsers:
                         p.update_from_line(state=state, line=line)
 
