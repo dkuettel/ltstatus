@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from subprocess import PIPE, CalledProcessError, Popen
 
-from ltstatus import CallbackMonitor, ThreadedMonitor, State
+from ltstatus import CallbackMonitor, State, ThreadedMonitor
 from ltstatus.tools import run_cmd
 
 
@@ -45,17 +45,24 @@ class Monitor(ThreadedMonitor):
     # https://stackoverflow.com/questions/11544836/monitoring-dbus-messages-by-python
 
     def run(self):
+
         # TODO this is a cheap (but low-cpu) realtime version
         # we simply check when bluetoothctl announces a change, and then call the original callback for a full state
         # in theory the output of bluetoothctl directly informs us, could also parse that and incrementally track the state
-        p = Popen(
-            args=["bluetoothctl"],
-            text=True,
-            stdout=PIPE,
-            stderr=PIPE,
-        )
+
         monitor = PollingMonitor(name=self.name)
         self.queue.put(monitor.get_updates())
+
         while not self.exit.is_set():
-            p.stdout.readline()
-            self.queue.put(monitor.get_updates())
+            with Popen(
+                args=["bluetoothctl"],
+                text=True,
+                stdout=PIPE,
+                stderr=PIPE,
+            ) as p:
+                while not self.exit.is_set() and p.poll() is None:
+                    p.stdout.readline()
+                    self.queue.put(monitor.get_updates())
+                if p.poll() is not None:
+                    # sometimes early in the x-session bluetoothctl fails, wait a bit and then retry
+                    self.exit.wait(1)
