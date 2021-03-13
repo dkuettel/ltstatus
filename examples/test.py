@@ -12,7 +12,13 @@ monitor = RateLimitedMonitors(
         ),
         monitors.dropbox.Monitor(),
         monitors.bluetooth.Monitor(),
+        monitors.sound.Monitor(
+            aliases={
+                "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
+            },
+        ),
         RegularGroupMonitor(
+            interval=1,
             monitors=[
                 monitors.cpu.Monitor(),
                 monitors.diskspace_alerts.Monitor(
@@ -23,11 +29,6 @@ monitor = RateLimitedMonitors(
                     },
                 ),
                 monitors.spotify.Monitor(),
-                monitors.sound.Monitor(
-                    aliases={
-                        "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
-                    },
-                ),
             ],
         ),
     ],

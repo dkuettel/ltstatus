@@ -18,15 +18,15 @@ monitor = RateLimitedMonitors(
             format=monitors.redshift.format_period,
         ),
         monitors.bluetooth.Monitor(),
+        monitors.sound.Monitor(
+            aliases={
+                "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
+            },
+        ),
         RegularGroupMonitor(
             interval=2,
             monitors=[
                 monitors.spotify.Monitor(),
-                monitors.sound.Monitor(
-                    aliases={
-                        "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
-                    },
-                ),
             ],
         ),
     ],

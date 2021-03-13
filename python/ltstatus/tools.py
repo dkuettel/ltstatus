@@ -20,7 +20,9 @@ def run_cmd(cmd: Union[str, List[str]]) -> str:
     else:
         assert False, type(cmd)
 
-    return str(subprocess.run(args=args, capture_output=True, text=True, check=True).stdout)
+    return str(
+        subprocess.run(args=args, capture_output=True, text=True, check=True).stdout
+    )
 
 
 def iter_available_from_queue(queue: Queue) -> Iterable:
@@ -73,7 +75,7 @@ class TailCommand:
     def as_context(cls, args: Union[str, List[str]], buffer: int = 1000):
 
         if type(args) is str:
-            args = [args]
+            args = args.split(" ")
         assert type(args) is list
 
         queue = Queue(maxsize=buffer)
