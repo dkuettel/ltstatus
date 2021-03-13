@@ -33,10 +33,18 @@ class Monitor(ThreadedMonitor):
     def get_content(self):
 
         try:
-            enabled = run_cmd("hcitool dev").count("\n") > 1
+            enabled = "Powered: yes" in run_cmd("bluetoothctl show")
             if enabled:
-                count = run_cmd("hcitool con").count("\n") - 1
-                return f"bt@{count}"
+                devices = [
+                    entry.split(" ")[1]
+                    for entry in run_cmd("bluetoothctl devices").split("\n")[:-1]
+                    # output: lines of "Device XX:XX:XX:XX:XX:XX some device name", with a trailing empty line
+                ]
+                connected = sum(
+                    "Connected: yes" in run_cmd(f"bluetoothctl info {device}")
+                    for device in devices
+                )
+                return f"bt@{connected}"
             else:
                 return "bt off"
 

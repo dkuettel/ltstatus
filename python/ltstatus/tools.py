@@ -20,7 +20,7 @@ def run_cmd(cmd: Union[str, List[str]]) -> str:
     else:
         assert False, type(cmd)
 
-    return subprocess.run(args=args, capture_output=True, text=True, check=True).stdout
+    return str(subprocess.run(args=args, capture_output=True, text=True, check=True).stdout)
 
 
 def iter_available_from_queue(queue: Queue) -> Iterable:
