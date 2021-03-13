@@ -18,6 +18,8 @@ isort==5.7.0
     # via pylint
 jedi==0.18.0
     # via ipython
+jeepney==0.6.0
+    # via -r requirements.in
 lazy-object-proxy==1.4.3
     # via astroid
 mccabe==0.6.1

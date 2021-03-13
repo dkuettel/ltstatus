@@ -17,6 +17,7 @@ monitor = RateLimitedMonitors(
                 "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
             },
         ),
+        monitors.spotify.Monitor(),
         RegularGroupMonitor(
             interval=1,
             monitors=[
@@ -28,7 +29,6 @@ monitor = RateLimitedMonitors(
                         Path("~"): 5.0,
                     },
                 ),
-                monitors.spotify.Monitor(),
             ],
         ),
     ],
