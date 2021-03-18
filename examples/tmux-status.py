@@ -11,7 +11,7 @@ monitor = RateLimitedMonitors(
         RegularGroupMonitor(
             interval=1,
             monitors=[
-                monitors.cpu.Monitor(),
+                monitors.cpu.Calm(),  # alternatively monitors.cpu.Monitor()
                 monitors.diskspace_alerts.Monitor(
                     limits={
                         Path("/var/lib/docker"): 2.0,
