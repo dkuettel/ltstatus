@@ -24,7 +24,7 @@ lazy-object-proxy==1.4.3
     # via astroid
 mccabe==0.6.1
     # via pylint
-nvidia-ml-py3==7.352.0
+nvidia-ml-py==11.450.51
     # via -r requirements.in
 parso==0.8.1
     # via jedi
@@ -32,7 +32,7 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-prompt-toolkit==3.0.16
+prompt-toolkit==3.0.17
     # via ipython
 psutil==5.8.0
     # via -r requirements.in
