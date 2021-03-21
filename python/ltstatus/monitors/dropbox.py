@@ -53,7 +53,7 @@ class Monitor(ThreadedMonitor):
         try:
             with DropboxClient.as_context(command_socket=self.command_socket) as dc:
                 while not self.exit.is_set():
-                    content = "✓" if dc.is_idle() else "x"
+                    content = "❖" if dc.is_idle() else "⇄"
                     self.queue.put({self.name: content})
                     self.exit.wait(self.interval)
         except FileNotFoundError:
