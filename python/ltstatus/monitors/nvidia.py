@@ -17,8 +17,8 @@ from ltstatus.tools import ffield
 class Monitor(ThreadedMonitor):
     name: str = "nvidia"
     interval: float = 1.0
-    total_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["pie"]))
-    memory: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["pie"]))
+    total_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["LMH"]))
+    memory: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["LMH"]))
 
     def run(self):
         # TODO how to not have unavailable status? test before and not even add it?

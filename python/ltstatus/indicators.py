@@ -13,7 +13,8 @@ bin_themes = {
     "stack": list("·−=≡≣"),
     "arrow": list("·→⇉⇶"),
     "ascii-arrows": ["---", ">--", ">>-", ">>>"],
-    "lmh": list("-LMH"),
+    "LMH": list(".LMH"),
+    "lmh": list(".lmh"),
 }
 
 

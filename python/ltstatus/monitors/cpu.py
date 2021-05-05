@@ -11,9 +11,9 @@ from ltstatus.indicators import HistogramIndicator, RatioIndicator, bin_themes
 class Monitor(CallbackMonitor):
     name: str = "cpu"
     cores: Optional[HistogramIndicator] = None
-    total_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["pie"]))
-    single_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["arrow"]))
-    memory: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["pie"]))
+    total_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["LMH"]))
+    single_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["lmh"]))
+    memory: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["LMH"]))
 
     def get_updates(self):
 
