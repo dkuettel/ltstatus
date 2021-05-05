@@ -37,5 +37,5 @@ class Monitor(CallbackMonitor):
         )
 
         return State.from_one(
-            self.name, f"{ind_cores}{ind_total}{ind_single}cpu{ind_memory}"
+            self.name, f"cpu{ind_cores}{ind_total}{ind_single}{ind_memory}"
         )

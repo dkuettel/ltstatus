@@ -18,7 +18,6 @@ class Monitor(ThreadedMonitor):
     name: str = "nvidia"
     interval: float = 1.0
     total_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["pie"]))
-    single_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["arrow"]))
     memory: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["pie"]))
 
     def run(self):
@@ -35,7 +34,6 @@ class Monitor(ThreadedMonitor):
             # https://docs.nvidia.com/deploy/nvml-api/group__nvmlDeviceQueries.html#group__nvmlDeviceQueries_1g540824faa6cef45500e0d1dc2f50b321
             compute = nvmlDeviceGetUtilizationRates(handle)
             ind_total = self.total_compute.format(compute.gpu / 100)
-            ind_single = self.single_compute.format(compute.gpu / 100)
 
             # memory has .free, .total, .used; in bytes
             # https://docs.nvidia.com/deploy/nvml-api/group__nvmlDeviceQueries.html#group__nvmlDeviceQueries_1g2dfeb1db82aa1de91aa6edf941c85ca8
@@ -43,7 +41,7 @@ class Monitor(ThreadedMonitor):
             ind_memory = self.memory.format(memory.used / memory.total)
 
             self.queue.put(
-                State.from_one(self.name, f"{ind_total}{ind_single}gpu{ind_memory}")
+                State.from_one(self.name, f"gpu{ind_total}{ind_memory}")
             )
             self.exit.wait(self.interval)
 
