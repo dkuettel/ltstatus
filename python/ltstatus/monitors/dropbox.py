@@ -1,3 +1,4 @@
+import re
 from contextlib import contextmanager
 from dataclasses import dataclass
 from io import FileIO
@@ -6,6 +7,10 @@ from socket import AF_UNIX, SOCK_STREAM, socket as new_socket
 
 from ltstatus import State, ThreadedMonitor
 from ltstatus.tools import ffield
+
+pattern_1file = re.compile(r'(Syncing|Indexing|Uploading) ".[^"]".*')
+pattern_files = re.compile(r"(Syncing|Indexing|Uploading) (?P<count>\d+) files.*")
+pattern_done = re.compile(r"Up to date")
 
 
 @dataclass
@@ -29,31 +34,50 @@ class DropboxClient:
             stream.close()
             socket.close()
 
-    def is_idle(self) -> bool:
+    def get_status(self) -> bool:
+
+        # the protocol is:
+        # send request newline, done newline
+        # then receive ok newline, reply tab-separated values newline, done newline
+        # the socket stream is not closed and can be reused
+
         self.stream.write("get_dropbox_status\ndone\n")
         self.stream.flush()
 
+        assert self.stream.readline().rstrip("\n") == "ok"
+        messages = self.stream.readline().rstrip("\n").split("\t")
+        assert self.stream.readline().rstrip("\n") == "done"
+
         idle = False
-        for l in self.stream:
-            if l == "done\n":
-                break
-            idle |= l == "status\tUp to date\n"
+        count = 0
 
-        return idle
+        for message in messages:
+            if pattern_done.fullmatch(message):
+                idle = True
+            if pattern_1file.fullmatch(message):
+                count = max(count, 1)
+            if m := pattern_files.fullmatch(message):
+                count = max(count, int(m["count"]))
+
+        return idle, count
 
 
-# TODO threaded now but not really realtime yet
+# TODO threaded now but not realtime, the dropbox control socket does not support notifications
 @dataclass
 class Monitor(ThreadedMonitor):
     name: str = "dropbox"
-    interval: float = 10.0
+    interval: float = 1.0
     command_socket: Path = ffield(lambda: Path("~/.dropbox/command_socket"))
 
     def run(self):
         try:
             with DropboxClient.as_context(command_socket=self.command_socket) as dc:
                 while not self.exit.is_set():
-                    content = "❖" if dc.is_idle() else "⇄"
+                    idle, count = dc.get_status()
+                    if idle:
+                        content = "dbox"
+                    else:
+                        content = f"db{count:02d}"
                     self.queue.put({self.name: content})
                     self.exit.wait(self.interval)
         except FileNotFoundError:
