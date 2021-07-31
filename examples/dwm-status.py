@@ -24,6 +24,12 @@ monitor = RateLimitedMonitors(
             },
         ),
         monitors.spotify.Monitor(),
+        RegularGroupMonitor(
+            interval=3,
+            monitors=[
+                monitors.process_alerts.Monitor(flags={"steam": r".*steam.*"}),
+            ],
+        ),
     ],
 )
 
@@ -31,6 +37,7 @@ status = XsetrootStatus(
     monitor=monitor,
     order=[
         "spotify",
+        "process-alerts",
         "redshift",
         "bluetooth",
         "sound",

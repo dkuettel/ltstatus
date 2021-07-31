@@ -29,6 +29,7 @@ monitor = RateLimitedMonitors(
                         Path("~"): 5.0,
                     },
                 ),
+                monitors.process_alerts.Monitor(flags={"steam": r".*steam.*"}),
             ],
         ),
     ],
