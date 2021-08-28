@@ -6,10 +6,12 @@ from ltstatus import State, ThreadedMonitor
 from ltstatus.tools import TailCommand, ffield, run_cmd
 
 re_sink_event = re.compile(r"Event '.+' on sink #\d+")
-re_default_sink = re.compile(r" +\* index: \d+\n(?P<default_sink>(\t.+\n)+)")
-re_volume = re.compile(r"\tvolume: .*: \d+ / +(?P<volume>\d+%)")
-re_muted = re.compile(r"\tmuted: (?P<muted>no|yes)")
-re_name = re.compile(r"\tdevice\.description = \"(?P<name>.*)\"")
+
+re_default_sink = re.compile(r"^Default Sink: (?P<value>.+)$", re.MULTILINE)
+re_name = re.compile(r"^\tName: (?P<value>.+)$", re.MULTILINE)
+re_description = re.compile(r"^\tDescription: (?P<value>.+)$", re.MULTILINE)
+re_mute = re.compile(r"\tMute: (?P<value>.+)$", re.MULTILINE)
+re_volume = re.compile(r"\tVolume: .* (?P<value>\d+)% .*$", re.MULTILINE)
 
 
 @dataclass
@@ -33,19 +35,34 @@ class Monitor(ThreadedMonitor):
                         last_content = content
 
     def get_content(self):
+        """
+        we use only 'pactl', and not 'pacmd'
+        for people that use PipeWire to replace pulseaudio
+        'pactl' still works, but 'pacmd' doesnt
+        """
 
-        sinks = run_cmd("pacmd list-sinks")
+        # NOTE we dont react kindly to anything that we cant parse
 
-        try:
-            sink = re_default_sink.search(sinks)["default_sink"]
-            volume = re_volume.search(sink)["volume"]
-            muted = re_muted.search(sink)["muted"] == "yes"
-            name = re_name.search(sink)["name"]
-        except TypeError:
-            return "?"
+        default_sink = re_default_sink.search(run_cmd("pactl info"))["value"]
 
-        sign = "#" if muted else "="
-        name = self.aliases.get(name, name)
-        content = f"{name}{sign}{volume}"
+        sinks = run_cmd("pactl list sinks")
+
+        for name in re_name.finditer(sinks):
+            if name["value"] == default_sink:
+                break
+        name, pos = name["value"], name.end()
+
+        description = re_description.search(sinks, pos)
+        description, pos = description["value"], description.end()
+
+        mute = re_mute.search(sinks, pos)
+        mute, pos = mute["value"] == "yes", mute.end()
+
+        volume = re_volume.search(sinks, pos)
+        volume, pos = int(volume["value"]), volume.end()
+
+        sign = "#" if mute else "="
+        description = self.aliases.get(description, description)
+        content = f"{description}{sign}{volume}%"
 
         return content
