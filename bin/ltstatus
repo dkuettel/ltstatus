@@ -2,7 +2,7 @@
 set -eu -o pipefail
 
 # > ltstatus lt-config.py
-# or using #!ltstatus on an executable python script
+# or using '#!/usr/bin/env ltstatus' as bang on an executable python script
 #
 # will activate the ltstatus virtual env
 # and then run the script
