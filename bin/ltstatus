@@ -14,9 +14,9 @@ set -eu -o pipefail
 # but if you want, it can take additional arguments to be configurable
 # it's up to your own code to parse that
 
-base=${0:a:h}/..
+base=${0:A:h}/..
 base=${base:a}
 
 export path=($base/.venv/bin $path)
 export PYTHONPATH=$base/python
-python $@[1,-1]
+python $@
