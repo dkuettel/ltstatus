@@ -21,6 +21,8 @@ monitor = RateLimitedMonitors(
         monitors.sound.Monitor(
             aliases={
                 "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
+                "Starship/Matisse HD Audio Controller Pro": "speakers",
+                "iFi (by AMR) HD USB Audio Pro": "ifi",
             },
         ),
         monitors.spotify.Monitor(),
