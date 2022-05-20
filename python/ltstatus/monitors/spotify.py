@@ -10,116 +10,167 @@ from ltstatus import State, ThreadedMonitor
 @dataclass
 class Monitor(ThreadedMonitor):
     name: str = "spotify"
+
+    def run(self):
+        last_update = None
+        for state in watch_and_generate_spotify_states(timeout=0.2):
+            if self.exit.is_set():
+                return
+            update = state.as_update(self.name)
+            if update != last_update:
+                # TODO update can be None, is that accepted? and how do we start out?
+                self.queue.put(update)
+                last_update = update
+
+
+@dataclass
+class SpotifyState:
+    # TODO what should be the default values
     running: Optional[bool] = None
     playing: Optional[bool] = None
     artist: Optional[str] = None
     title: Optional[str] = None
 
-    def run(self):
-        try:
-            con = open_dbus_connection()
+    # TODO too verbose? let's see how we do the defaults
+    @classmethod
+    def from_running(cls):
+        return cls(running=True)
 
-            rule_properties = MatchRule(
-                type="signal",
-                interface="org.freedesktop.DBus.Properties",
-                member="PropertiesChanged",
-                path="/org/mpris/MediaPlayer2",
-            )
-            con.send(message_bus.AddMatch(rule_properties))
+    @classmethod
+    def from_not_running(cls):
+        return cls(running=False)
 
-            rule_owners = MatchRule(
-                type="signal",
-                sender="org.freedesktop.DBus",
-                interface="org.freedesktop.DBus",
-                member="NameOwnerChanged",
-                path="/org/freedesktop/DBus",
-            )
-            con.send(message_bus.AddMatch(rule_owners))
-
-            self.ask_for_state(con)
-            last_update = self.get_update()
-            self.queue.put(last_update)
-
-            while not self.exit.is_set():
-
-                # note: spotify usually sends the same message 3 or 6 times
-                message = con.receive()
-
-                if rule_properties.matches(message):
-                    self.read_properties_message(message)
-                elif rule_owners.matches(message):
-                    self.read_owners_message(message)
-                else:
-                    raise Exception(f"unknown message: {message}")
-
-                update = self.get_update()
-                if update != last_update:
-                    self.queue.put(update)
-                    last_update = update
-
-        finally:
-            con.close()
-
-    def get_update(self) -> Optional[State]:
+    def as_update(self, name) -> Optional[State]:
         if self.running is None:
             return None
         if not self.running:
-            return State.from_one(self.name, None)
+            return State.from_one(name, None)
         if None in {self.artist, self.playing, self.title}:
-            return State.from_one(self.name, "spotify starting")
+            return State.from_one(name, "spotify starting")
         return State.from_one(
-            self.name,
+            name,
             f"{self.artist} {'-' if self.playing else '#'} {self.title}",
         )
 
-    def ask_for_state(self, con):
+    def is_full_state(self) -> bool:
+        return self.running == True and None not in {
+            self.artist,
+            self.playing,
+            self.title,
+        }
 
-        properties = Properties(
-            obj=DBusAddress(
-                "/org/mpris/MediaPlayer2",
-                "org.mpris.MediaPlayer2.spotify",
-                "org.mpris.MediaPlayer2.Player",
-            ),
+
+def watch_and_generate_spotify_states(timeout: Optional[float]):
+    with open_dbus_connection() as con:
+
+        rule_properties = MatchRule(
+            type="signal",
+            interface="org.freedesktop.DBus.Properties",
+            member="PropertiesChanged",
+            path="/org/mpris/MediaPlayer2",
         )
+        con.send(message_bus.AddMatch(rule_properties))
 
-        reply = con.send_and_get_reply(properties.get("PlaybackStatus"))
-        if reply.header.message_type == MessageType.method_return:
-            self.running = True
-            self.playing = reply.body[0][1] == "Playing"
+        rule_owners = MatchRule(
+            type="signal",
+            sender="org.freedesktop.DBus",
+            interface="org.freedesktop.DBus",
+            member="NameOwnerChanged",
+            path="/org/freedesktop/DBus",
+        )
+        con.send(message_bus.AddMatch(rule_owners))
 
-            reply = con.send_and_get_reply(properties.get("Metadata"))
-            self.artist = ",".join(reply.body[0][1]["xesam:artist"][1])
-            self.title = reply.body[0][1]["xesam:title"][1]
+        state = ask_dbus_for_full_state(con)
+        _timeout = 0
 
-        else:
-            self.running = False
+        should_get_full_state = False
 
-    def read_properties_message(self, message):
+        while True:
+            if should_get_full_state:
+                state = ask_dbus_for_full_state(con)
+                should_get_full_state = not state.is_full_state()
+            try:
+                message = con.receive(timeout=_timeout)
+                _timeout = 0
+                # jeepney.io.threading.ReceiveStopped can also happen
+            except TimeoutError:
+                yield state
+                _timeout = timeout
+                continue
+            if rule_properties.matches(message):
+                state = update_state_from_properties_message(message, state)
+                continue
+            if rule_owners.matches(message):
+                state, should_get_full_state = update_state_from_owners_message(
+                    message, state
+                )
+                continue
 
-        # I dont know how to filter for signals from spotify only
-        # I think there should be a away to do it fith MatchRule above in self.run
-        # but it didnt work for me
-        # firefox and other media stuff also sends similar PropertiesChanged messages
-        # spotify contains PlaybackStatus and Metadata in the same message
-        # plus it obviously has spotify trackids, I use this as an ad-hoc filter
 
-        if "PlaybackStatus" not in message.body[1]:
-            return
-        if "Metadata" not in message.body[1]:
-            return
-        if "spotify:track:" not in message.body[1]["Metadata"][1]["mpris:trackid"][1]:
-            return
+def ask_dbus_for_full_state(con) -> SpotifyState:
 
-        self.playing = message.body[1]["PlaybackStatus"][1] == "Playing"
-        self.artist = ",".join(message.body[1]["Metadata"][1]["xesam:artist"][1])
-        self.title = message.body[1]["Metadata"][1]["xesam:title"][1]
+    properties = Properties(
+        obj=DBusAddress(
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.spotify",
+            "org.mpris.MediaPlayer2.Player",
+        ),
+    )
 
-    def read_owners_message(self, message):
-        name, _, new = message.body
-        if name == "org.mpris.MediaPlayer2.spotify" and new != "":
-            self.running = True
-        elif name == "org.mpris.MediaPlayer2.spotify" and new == "":
-            self.running = False
-            self.playing = None
-            self.artist = None
-            self.title = None
+    playback_status = con.send_and_get_reply(properties.get("PlaybackStatus"))
+    metadata = con.send_and_get_reply(properties.get("Metadata"))
+
+    if {playback_status.header.message_type, metadata.header.message_type} != {
+        MessageType.method_return
+    }:
+        return SpotifyState.from_not_running()
+
+    return SpotifyState(
+        running=True,
+        playing=playback_status.body[0][1] == "Playing",
+        artist=",".join(metadata.body[0][1]["xesam:artist"][1]) or None,
+        title=metadata.body[0][1]["xesam:title"][1] or None,
+    )
+
+
+def update_state_from_properties_message(message, state: SpotifyState) -> SpotifyState:
+
+    try:
+        state.playing = message.body[1]["PlaybackStatus"][1] == "Playing"
+    except:
+        pass
+
+    try:
+        state.artist = (
+            ",".join(message.body[1]["Metadata"][1]["xesam:artist"][1]) or None
+        )
+    except:
+        pass
+
+    try:
+        state.title = message.body[1]["Metadata"][1]["xesam:title"][1] or None
+    except:
+        pass
+
+    return state
+
+
+def update_state_from_owners_message(
+    message, state: SpotifyState
+) -> tuple[SpotifyState, bool]:
+    """return new state and if it's advisable to get a full state from dbus"""
+    name, _, new = message.body
+    if name == "org.mpris.MediaPlayer2.spotify" and new != "":
+        return SpotifyState.from_running(), True
+    if name == "org.mpris.MediaPlayer2.spotify" and new == "":
+        return SpotifyState.from_not_running(), False
+    return state, False
+
+
+def debug():
+    for state in watch_and_generate_spotify_states(timeout=None):
+        print(state)
+
+
+if __name__ == "__main__":
+    debug()
