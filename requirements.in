@@ -1,5 +1,5 @@
-ipython ~= 7.21.0
-jeepney ~= 0.6.0
-nvidia-ml-py ~= 11.450.51
-psutil ~= 5.8.0
-pylint ~= 2.6.2
+ipython ~= 8.3.0
+jeepney ~= 0.8.0
+nvidia-ml-py ~= 11.515.48
+psutil ~= 5.9.0
+pylint ~= 2.13.9
