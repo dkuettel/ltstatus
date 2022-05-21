@@ -2,40 +2,28 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
+from itertools import zip_longest
 from queue import Empty, Queue
 from threading import Event, Thread
-from typing import Callable, Iterable, TypeVar, Union
+from typing import Callable, Iterable
 
 from python.ltstatus.tools import run_cmd
 
-
-@dataclass
-class State:
-    elements: dict[str, Union[str, Exception]] = field(default_factory=dict)
-
-    def update(self, u: Update):
-        # the first exception sticks, we never clear it
-        if isinstance(self.elements.get(u.name, None), Exception):
-            return
-        if u.state is None:
-            self.elements.pop(u.name, None)
-            return
-        self.elements[u.name] = u.state
+State = dict[str, str]
 
 
-@dataclass
-class Update:
-    name: str
-    state: Union[str, Exception, None]
-
-
-# TODO better to pass timeout or the batched queue instance? and then not even updates itself anymore
-def generate_states(updates: Queue[Update], timeout: float = 1 / 30) -> Iterable[State]:
+def generate_states(updates: Queue[State], timeout: float = 1 / 30) -> Iterable[State]:
     state = State()
     yield state
-    for batch in batched_queue(updates, timeout=timeout):
-        for update in batch:
-            state.update(update)
+    while True:
+        state.update(updates.get())
+        try:
+            deadline = time.perf_counter() + timeout
+            remaining = lambda: deadline - time.perf_counter()
+            while remaining() > 0:
+                state.update(updates.get(timeout=remaining()))
+        except Empty:
+            pass
         yield state
 
 
@@ -49,16 +37,9 @@ class FormatAsSegments:
     waiting: str = "..."
 
     def __call__(self, state: State) -> str:
-        elements = state.elements
-        names = self.order + sorted(set(elements) - set(self.order))
-
-        def f(name):
-            value = elements.get(name, self.waiting)
-            if isinstance(value, Exception):
-                return f"{name} failed"
-            return value
-
-        return self.prefix + self.separator.join(map(f, names)) + self.postfix
+        names = self.order + sorted(set(state) - set(self.order))
+        values = (f"{name}={state.get(name, self.waiting)}" for name in names)
+        return self.prefix + self.separator.join(values) + self.postfix
 
 
 def show_stdout(status: str):
@@ -67,23 +48,6 @@ def show_stdout(status: str):
 
 def show_xsetroot(status: str):
     run_cmd(["xsetroot", "-name", status])
-
-
-# TODO does this have to be per generic, or globally once?
-T = TypeVar("T")
-
-
-def batched_queue(updates: Queue[T], timeout: float = 1 / 30) -> Iterable[list[T]]:
-    while True:
-        batch = [updates.get()]
-        try:
-            deadline = time.perf_counter() + timeout
-            remaining = lambda: deadline - time.perf_counter()
-            while remaining() > 0:
-                batch.append(updates.get(timeout=remaining()))
-        except Empty:
-            pass
-        yield batch
 
 
 def run(
@@ -100,7 +64,7 @@ def count_seconds(exit, send):
         time.sleep(1)
         if exit.is_set():
             return
-        send(Update("seconds", str(i)))
+        send({"seconds": str(i)})
 
 
 def give_time(exit, send):
@@ -108,12 +72,12 @@ def give_time(exit, send):
         time.sleep(1)
         if exit.is_set():
             return
-        send(Update("time", str(time.time())))
+        send({"time": str(time.time())})
 
 
 @dataclass
 class Nursery:
-    updates: Queue[Update]
+    updates: Queue[State]
     exit: Event
     threads: list[Thread] = field(default_factory=list)
 
@@ -138,12 +102,34 @@ class Nursery:
         return False
 
 
+def poll_updates(
+    exit,
+    send,
+    interval: float,
+    sources: list[Iterable[State]],
+):
+    for updates in zip_longest(*sources, fillvalue=None):
+        batch = State()
+        for update in updates:
+            batch.update(update)
+        send(batch)
+        if exit.wait(interval):
+            return
+
+
+def generate_time_updates() -> Iterable[State]:
+    while True:
+        yield {"ptime": str(time.time())}
+
+
 def test():
     updates = Queue(maxsize=1000)
     exit = Event()
+    sources = [generate_time_updates()]
     with Nursery(updates, exit) as nursery:
         nursery.run(lambda: count_seconds(exit, updates.put))
         nursery.run(lambda: give_time(exit, updates.put))
+        nursery.run(lambda: poll_updates(exit, updates.put, 1, sources))
         try:
             run(generate_states(updates, timeout=1 / 30))
         except KeyboardInterrupt:
