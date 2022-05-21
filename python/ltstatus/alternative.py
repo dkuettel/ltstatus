@@ -27,19 +27,17 @@ def generate_states(updates: Queue[State], timeout: float = 1 / 30) -> Iterable[
         yield state
 
 
-# TODO how about making this with partial() ? is that better in some way?
-@dataclass
-class FormatAsSegments:
-    order: list[str] = field(default_factory=list)
-    separator: str = ", "
-    prefix: str = ""
-    postfix: str = ""
-    waiting: str = "..."
-
-    def __call__(self, state: State) -> str:
-        names = self.order + sorted(set(state) - set(self.order))
-        values = (f"{name}={state.get(name, self.waiting)}" for name in names)
-        return self.prefix + self.separator.join(values) + self.postfix
+def format_segments(
+    state: State,
+    order: list[str] = [],
+    separator: str = ", ",
+    prefix: str = "[",
+    postfix: str = "]",
+    waiting: str = "...",
+) -> str:
+    names = order + sorted(set(state) - set(order))
+    values = (f"{name}={state.get(name, waiting)}" for name in names)
+    return prefix + separator.join(values) + postfix
 
 
 def show_stdout(status: str):
@@ -52,7 +50,7 @@ def show_xsetroot(status: str):
 
 def run(
     states: Iterable[State],
-    format=FormatAsSegments(),
+    format=format_segments,
     show=show_stdout,
 ):
     for state in states:
