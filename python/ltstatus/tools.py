@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import subprocess
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from queue import Empty, Queue
 from threading import Thread
-from typing import Iterable, List, Union
+from typing import Iterable, List, Optional, Union
 
 
 def ffield(factory):
@@ -48,6 +50,18 @@ class TailCommandFailed(Exception):
 
 @dataclass
 class TailCommand:
+    """
+    Neither subprocess nor file-like objects offer a way to read with a timeout.
+    Usually we need TailCommand inside a RealtimeMonitor,
+    where we need to check if we should exit.
+    This can then be stuck in waiting for output from a tail command.
+    That's why it's a separate thread that puts it in a queue.
+    A queue can be read with timeout.
+    And the queue and the command are stopped from outside.
+    This then also terminates the helper thread.
+    With async we could get around this.
+    """
+
     process: subprocess.Popen
     queue: Queue
 
@@ -59,11 +73,13 @@ class TailCommand:
                 continue
             assert type(line) is int
             if line == 0:
+                # TODO that should be normal, just stop the iterator?
                 raise TailCommandExited()
             raise TailCommandFailed(self)
 
     def run(self):
         try:
+            # TODO what about stderr?
             for line in self.process.stdout:
                 self.queue.put(line.rstrip("\n"))
         finally:
@@ -94,6 +110,66 @@ class TailCommand:
             yield context
 
         thread.join()
+
+
+@dataclass
+class NewTailCommand:
+    args: list[str]
+    line_buffer_size: int = 1000
+
+    def returncode(self) -> Optional[int]:
+        return self.process.poll()
+
+    def wait_for_chatter(self, timeout: Optional[float] = None):
+        try:
+            self.queue.get(timeout=timeout)
+        except Empty:
+            return False
+        try:
+            for _ in range(1000):
+                self.queue.get_nowait()
+        except Empty:
+            pass
+        return True
+
+    def __enter__(self) -> NewTailCommand:
+        self.queue = Queue(maxsize=self.line_buffer_size)
+        self.process = subprocess.Popen(
+            args=self.args,
+            text=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.thread = Thread(target=self._tail)
+        self.thread.start()
+        return self
+
+    def __exit__(self, *_) -> bool:
+        assert self.process.stdin is not None
+        # TODO like ctrl-d, but probably not all binaries exit because of that
+        self.process.stdin.close()
+        while self.process.poll() is None and self.thread.is_alive():
+            self._flush_queue()
+            self.process.wait(0.1)
+            self.thread.join(0.1)
+        return False
+
+    def _tail(self):
+        try:
+            # TODO what about stderr?
+            assert self.process.stdout is not None
+            for line in self.process.stdout:
+                self.queue.put(line.rstrip("\n"))
+        finally:
+            assert self.process.poll() is not None
+
+    def _flush_queue(self):
+        try:
+            for _ in range(1000):
+                self.queue.get_nowait()
+        except Empty:
+            pass
 
 
 def tail_file(path: Union[str, Path]):
