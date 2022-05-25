@@ -1,138 +1,120 @@
 from __future__ import annotations
 
-import time
-from dataclasses import dataclass, field
-from itertools import zip_longest
-from queue import Empty, Queue
-from threading import Event, Thread
-from typing import Callable, Iterable
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Iterator, Optional, Union
 
-from python.ltstatus.tools import run_cmd
-
-State = dict[str, str]
-
-
-def generate_states(updates: Queue[State], timeout: float = 1 / 30) -> Iterable[State]:
-    state = State()
-    yield state
-    while True:
-        state.update(updates.get())
-        try:
-            deadline = time.perf_counter() + timeout
-            remaining = lambda: deadline - time.perf_counter()
-            while remaining() > 0:
-                state.update(updates.get(timeout=remaining()))
-        except Empty:
-            pass
-        yield state
-
-
-def format_segments(
-    state: State,
-    order: list[str] = [],
-    separator: str = ", ",
-    prefix: str = "[",
-    postfix: str = "]",
-    waiting: str = "...",
-) -> str:
-    names = order + sorted(set(state) - set(order))
-    values = (f"{name}={state.get(name, waiting)}" for name in names)
-    return prefix + separator.join(values) + postfix
-
-
-def show_stdout(status: str):
-    print(status, flush=True)
-
-
-def show_xsetroot(status: str):
-    run_cmd(["xsetroot", "-name", status])
-
-
-def run(
-    states: Iterable[State],
-    format=format_segments,
-    show=show_stdout,
-):
-    for state in states:
-        show(format(state))
-
-
-def count_seconds(exit, send):
-    for i in range(100):
-        time.sleep(1)
-        if exit.is_set():
-            return
-        send({"seconds": str(i)})
-
-
-def give_time(exit, send):
-    for _ in range(30):
-        time.sleep(1)
-        if exit.is_set():
-            return
-        send({"time": str(time.time())})
+from .core import Format, Output, State, UpdateContext, UpdateThread, run_update_threads
 
 
 @dataclass
-class Nursery:
-    updates: Queue[State]
-    exit: Event
-    threads: list[Thread] = field(default_factory=list)
+class RealtimeContext:
+    update_context: UpdateContext
+    name: str
 
-    def run(self, fn: Callable[[], None]):
-        t = Thread(target=fn)
-        self.threads.append(t)
-        t.start()
+    def should_exit(self) -> bool:
+        return self.update_context.should_exit()
 
-    def __enter__(self) -> Nursery:
-        return self
+    def sleep(self, seconds: float):
+        self.update_context.sleep(seconds)
 
-    def __exit__(self, *_) -> bool:
-        self.exit.set()
-        for t in self.threads:
-            while t.is_alive():
-                try:
-                    for _ in range(len(self.threads)):
-                        self.updates.get_nowait()
-                except Empty:
-                    pass
-            t.join(0.1)
-        return False
+    def send(self, update: str):
+        self.update_context.send(State.from_one(self.name, update))
 
 
-def poll_updates(
-    exit,
-    send,
-    interval: float,
-    sources: list[Iterable[State]],
+@dataclass
+class RealtimeMonitor(ABC):
+    name: str
+
+    @abstractmethod
+    def run(self, context: RealtimeContext):
+        """check exit regularly and send updates whenever necessary"""
+
+
+@dataclass
+class RealtimeThread(UpdateThread):
+    monitor: RealtimeMonitor
+
+    def run(self, context: UpdateContext):
+        self.monitor.run(RealtimeContext(context, self.monitor.name))
+
+
+@dataclass
+class PollingMonitor(ABC):
+    name: str
+
+    @abstractmethod
+    def updates(self) -> Iterator[str]:
+        """This iterator needs to be infinite"""
+
+
+@dataclass
+class PollingThread(UpdateThread):
+    monitors: list[PollingMonitor]
+    interval: float = 1.0
+
+    def run(self, context: UpdateContext):
+        updates = {m.name: m.updates() for m in self.monitors}
+        while not context.should_exit():
+            batch = State.from_empty()
+            for name, update in updates.items():
+                batch.update(State.from_one(name, next(update)))
+            context.send(batch)
+            context.sleep(self.interval)
+
+
+def run(
+    monitors: list[Union[RealtimeMonitor, PollingMonitor]],
+    polling_interval: float = 1.0,
+    format: Optional[Format] = None,
+    output: Optional[Output] = None,
 ):
-    for updates in zip_longest(*sources, fillvalue=None):
-        batch = State()
-        for update in updates:
-            batch.update(update)
-        send(batch)
-        if exit.wait(interval):
-            return
 
+    if format is None:
+        from . import formats
 
-def generate_time_updates() -> Iterable[State]:
-    while True:
-        yield {"ptime": str(time.time())}
+        format = formats.plain()
+
+    if output is None:
+        from . import outputs
+
+        output = outputs.stdout()
+
+    # TODO still not super happy about the need for names for identifying
+    # people can mess it up. for meta info and debug it's fine, but not for ordering and state keys
+    names = [m.name for m in monitors]
+    assert len(names) == len(set(names))
+
+    realtime = [m for m in monitors if isinstance(m, RealtimeMonitor)]
+    polling = [m for m in monitors if isinstance(m, PollingMonitor)]
+    assert len(realtime) + len(polling) == len(monitors)
+
+    threads: list[UpdateThread] = [RealtimeThread(m) for m in realtime]
+
+    if len(polling) > 0:
+        threads.append(PollingThread(polling, polling_interval))
+
+    run_update_threads(
+        state=State.from_empty(names),
+        threads=threads,
+        format=format,
+        output=output,
+    )
 
 
 def test():
-    updates = Queue(maxsize=1000)
-    exit = Event()
-    sources = [generate_time_updates()]
-    with Nursery(updates, exit) as nursery:
-        nursery.run(lambda: count_seconds(exit, updates.put))
-        nursery.run(lambda: give_time(exit, updates.put))
-        nursery.run(lambda: poll_updates(exit, updates.put, 1, sources))
-        try:
-            run(generate_states(updates, timeout=1 / 30))
-        except KeyboardInterrupt:
-            print("bye")
+    from ltstatus import formats, outputs
+    from ltstatus.new_monitors import polling as p, realtime as rt
+
+    run(
+        monitors=[p.cpu()],
+        polling_interval=1,
+        format=formats.tmux(),
+        output=outputs.stdout(),
+    )
 
 
 if __name__ == "__main__":
-    test()
+    from . import alternative
+
+    alternative.test()
