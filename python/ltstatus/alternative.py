@@ -24,7 +24,7 @@ class RealtimeContext:
     def send(self, update: Optional[str]):
         if update == self.last_update:
             return
-        self.update_context.send(State.from_one(self.name, update))
+        self.update_context.send({self.name: update})
         self.last_update = update
 
 
@@ -62,12 +62,22 @@ class PollingThread(UpdateThread):
     def run(self, context: UpdateContext):
         updates = {m.name: m.updates() for m in self.monitors}
         while not context.should_exit():
-            batch = State.from_empty()
-            batch.update_all(
-                [State.from_one(name, next(update)) for name, update in updates.items()]
-            )
+            batch = State()
+            for name, update in updates.items():
+                batch.update({name: next(update)})
             context.send(batch)
             context.sleep(self.interval)
+
+
+@dataclass
+class OrderedFormat(Format):
+    order: list[str]
+    format: Format
+    waiting: str = ""  # alternatives: ..., , …
+
+    def apply(self, state: State) -> str:
+        ordered_state = {name: state.get(name, self.waiting) for name in self.order}
+        return self.format.apply(ordered_state)
 
 
 def run(
@@ -101,20 +111,29 @@ def run(
     if len(polling) > 0:
         threads.append(PollingThread(polling, polling_interval))
 
+    ordered_format = OrderedFormat(names, format)
+
     run_update_threads(
-        state=State.from_empty(names),
         threads=threads,
-        format=format,
+        format=ordered_format,
         output=output,
     )
 
 
 def test():
-    from ltstatus import formats, outputs
-    from ltstatus.new_monitors import polling as p, realtime as rt
+    from pathlib import Path
 
+    from ltstatus import formats, new_monitors as m, outputs
+
+    da = m.diskspace_alerts(
+        limits={
+            Path("/var/lib/docker"): 2.0,
+            Path("/"): 10.0,
+            Path("~"): 5.0,
+        }
+    )
     run(
-        monitors=[p.cpu()],
+        monitors=[da],
         polling_interval=1,
         format=formats.tmux(),
         output=outputs.stdout(),

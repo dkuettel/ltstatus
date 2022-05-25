@@ -10,12 +10,12 @@ class Segments(Format):
     prefix: str = ""
     postfix: str = ""
     separator: str = ", "
-    waiting: str = "..."
 
     def apply(self, state: State) -> str:
         decorated = (
-            f"{self.prefix}{self.waiting if value is None else value}{self.postfix}"
+            f"{self.prefix}{value}{self.postfix}"
             for value in state.values()
+            if value is not None
         )
         return self.separator.join(decorated)
 

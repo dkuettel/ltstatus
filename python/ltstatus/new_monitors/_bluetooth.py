@@ -10,6 +10,7 @@ class Monitor(RealtimeMonitor):
     name: str = "bluetooth"
 
     # TODO dbus notifications could be another solution
+    # TODO could think about sending None when there is not bluetooth hardware (and exit the thread (?))
 
     def run(self, context: RealtimeContext):
 

@@ -9,12 +9,6 @@ from ..tools import ffield
 
 
 # TODO maybe alerts could have a different interface and be grouped, so they sort stably?
-# TODO plus this behavior has changed a bit, formatter shows all entries, there is no way to say "dont show"
-# do we want it? I think for tmux at least, we only want to see it when it's doing something
-# allow state as: not-yet-initialized, None for dont show, str for what it is
-# yes we definitely need a monitor to be able to say dont show me, independent of alerts anyway
-# state sticks with having a mandatory list and actual values, it's up to the formatter how smart it does it?
-# the nice thing is then state typing doesnt change, only meaning of None changes
 @dataclass
 class Monitor(PollingMonitor):
     name: str = "diskspace-alerts"
@@ -45,6 +39,5 @@ class Monitor(PollingMonitor):
                     alerts.append(f"{folder}@{round(free)}<{round(limit)}GiB")
 
         if len(alerts) == 0:
-            return ""
-            # return None
+            return None
         return ",".join(alerts)

@@ -9,31 +9,7 @@ from typing import Iterator, Optional
 
 from .threading import Nursery
 
-
-@dataclass
-class State:
-    entries: dict[str, Optional[str]]
-
-    @classmethod
-    def from_empty(cls, names: list[str] = []) -> State:
-        return cls({name: None for name in names})
-
-    @classmethod
-    def from_one(cls, name: str, value: Optional[str]) -> State:
-        return cls({name: value})
-
-    def update(self, other: State):
-        self.entries.update(other.entries)
-
-    def update_all(self, others: list[State]):
-        for other in others:
-            self.update(other)
-
-    def clone(self) -> State:
-        return State(dict(self.entries))
-
-    def values(self) -> list[Optional[str]]:
-        return list(self.entries.values())
+State = dict[str, Optional[str]]
 
 
 @dataclass
@@ -72,10 +48,10 @@ class Output(ABC):
 # TODO reading from a queue (generically) batched with back-off could be utility for monitors
 # rewrite and make run_from_states to run_from_queue ?
 def generate_states_from_queue(
-    state: State,
     updates: Queue[State],
     timeout: float = 1 / 30,
 ) -> Iterator[State]:
+    state = State()
     yield state
     while True:
         state.update(updates.get())
@@ -95,7 +71,6 @@ def run_from_states(states: Iterator[State], format: Format, output: Output):
 
 
 def run_update_threads(
-    state: State,
     threads: list[UpdateThread],
     format: Format,
     output: Output,
@@ -104,7 +79,7 @@ def run_update_threads(
     with Nursery(c.exit, c.updates) as n:
         for t in threads:
             n.run(lambda: t.run(c))
-        states = generate_states_from_queue(state, c.updates)
+        states = generate_states_from_queue(c.updates)
         try:
             run_from_states(states, format, output)
         except KeyboardInterrupt:
