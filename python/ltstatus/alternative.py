@@ -18,7 +18,7 @@ class RealtimeContext:
     def sleep(self, seconds: float):
         self.update_context.sleep(seconds)
 
-    def send(self, update: str):
+    def send(self, update: Optional[str]):
         self.update_context.send(State.from_one(self.name, update))
 
 
@@ -44,7 +44,7 @@ class PollingMonitor(ABC):
     name: str
 
     @abstractmethod
-    def updates(self) -> Iterator[str]:
+    def updates(self) -> Iterator[Optional[str]]:
         """This iterator needs to be infinite"""
 
 
@@ -57,8 +57,9 @@ class PollingThread(UpdateThread):
         updates = {m.name: m.updates() for m in self.monitors}
         while not context.should_exit():
             batch = State.from_empty()
-            for name, update in updates.items():
-                batch.update(State.from_one(name, next(update)))
+            batch.update_all(
+                [State.from_one(name, next(update)) for name, update in updates.items()]
+            )
             context.send(batch)
             context.sleep(self.interval)
 

@@ -19,7 +19,7 @@ class State:
         return cls({name: None for name in names})
 
     @classmethod
-    def from_one(cls, name: str, value: str) -> State:
+    def from_one(cls, name: str, value: Optional[str]) -> State:
         return cls({name: value})
 
     def update(self, other: State):
