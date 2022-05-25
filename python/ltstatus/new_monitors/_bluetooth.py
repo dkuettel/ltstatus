@@ -13,8 +13,7 @@ class Monitor(RealtimeMonitor):
 
     def run(self, context: RealtimeContext):
 
-        state = self.get_state()
-        context.send(state)
+        context.send(self.get_state())
 
         while not context.should_exit():
             with NewTailCommand(args=["bluetoothctl"]) as tail:
@@ -28,10 +27,7 @@ class Monitor(RealtimeMonitor):
                         break
                     if not tail.wait_for_chatter(timeout=1):
                         continue
-                    # TODO how to abstract this? context.send could be smart?
-                    # and then we dont even need to remember our state
-                    if state != (state := self.get_state()):
-                        context.send(state)
+                    context.send(self.get_state())
 
     def get_state(self):
 

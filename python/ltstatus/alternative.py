@@ -12,6 +12,9 @@ class RealtimeContext:
     update_context: UpdateContext
     name: str
 
+    def __post_init__(self):
+        self.last_update = object()
+
     def should_exit(self) -> bool:
         return self.update_context.should_exit()
 
@@ -19,7 +22,10 @@ class RealtimeContext:
         self.update_context.sleep(seconds)
 
     def send(self, update: Optional[str]):
+        if update == self.last_update:
+            return
         self.update_context.send(State.from_one(self.name, update))
+        self.last_update = update
 
 
 @dataclass
