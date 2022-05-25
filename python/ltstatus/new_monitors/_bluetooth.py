@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from subprocess import CalledProcessError
 
 from ..alternative import RealtimeContext, RealtimeMonitor
-from ..tools import TailCommand, TailCommandExited, TailCommandFailed, run_cmd
+from ..tools import NewTailCommand, run_cmd
 
 
 @dataclass
@@ -17,20 +17,21 @@ class Monitor(RealtimeMonitor):
         context.send(state)
 
         while not context.should_exit():
-            try:
-                with TailCommand.as_context(args="bluetoothctl") as log:
-                    while not context.should_exit():
-                        # chatter on bluetoothctl means changes
-                        # TODO I think we can be stuck here :/
-                        list(log.get_some_lines())
-                        # TODO how to abstract this? context.send could be smart?
-                        if state != (state := self.get_state()):
-                            context.send(state)
-            except (TailCommandExited, TailCommandFailed):
-                # sometimes early in the x-session bluetoothctl fails, we wait a bit and then retry
-                state = "bt..."
-                context.send(state)
-                context.sleep(1)
+            with NewTailCommand(args=["bluetoothctl"]) as tail:
+                while not context.should_exit():
+                    if tail.returncode() is not None:
+                        # TODO is that true? does bluetoothctl fail? what's missing? X is not needed for bluetooth
+                        # sometimes early in the x-session bluetoothctl fails, we wait a bit and then retry
+                        state = "bt..."
+                        context.send(state)
+                        context.sleep(1)
+                        break
+                    if not tail.wait_for_chatter(timeout=1):
+                        continue
+                    # TODO how to abstract this? context.send could be smart?
+                    # and then we dont even need to remember our state
+                    if state != (state := self.get_state()):
+                        context.send(state)
 
     def get_state(self):
 
@@ -51,4 +52,4 @@ class Monitor(RealtimeMonitor):
                 return "bt off"
 
         except CalledProcessError:
-            return "?"
+            return "bt ?"
