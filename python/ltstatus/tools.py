@@ -26,7 +26,7 @@ def run_cmd(cmd: Union[str, List[str]]) -> str:
 
 
 def iter_available_from_queue(queue: Queue) -> Iterable:
-    """ wait for at least one element and then return all additional elements that are ready before the iterator stops """
+    """wait for at least one element and then return all additional elements that are ready before the iterator stops"""
     # TODO what happens to us when the receiver of the yield raises an exception?
     yield queue.get()
     try:
@@ -52,7 +52,7 @@ class TailCommand:
     queue: Queue
 
     def get_some_lines(self) -> Iterable[str]:
-        """ get as many lines as are available right now, but wait for at least one line """
+        """get as many lines as are available right now, but wait for at least one line"""
         for line in iter_available_from_queue(self.queue):
             if type(line) is str:
                 yield line
@@ -97,7 +97,7 @@ class TailCommand:
 
 
 def tail_file(path: Union[str, Path]):
-    """ tail lines of a file as it grows, non-blocking thru a queue """
+    """tail lines of a file as it grows, non-blocking thru a queue"""
     return TailCommand.as_context(
         args=[
             "tail",
