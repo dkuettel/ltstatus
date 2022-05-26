@@ -188,13 +188,10 @@ class NewTailCommand:
         return False
 
     def _tail(self):
-        try:
-            # TODO what about stderr?
-            assert self.process.stdout is not None
-            for line in self.process.stdout:
-                self.queue.put(line.rstrip("\n"))
-        finally:
-            assert self.process.poll() is not None
+        # TODO what about stderr?
+        assert self.process.stdout is not None
+        for line in self.process.stdout:
+            self.queue.put(line.rstrip("\n"))
 
     def _flush_queue(self):
         try:
