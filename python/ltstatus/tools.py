@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import signal
 import subprocess
+from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from queue import Empty, Queue
 from threading import Thread
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, Iterator, List, Optional, Union
 
 
 def ffield(factory):
@@ -80,6 +82,7 @@ class TailCommand:
     def run(self):
         try:
             # TODO what about stderr?
+            assert self.process.stdout is not None
             for line in self.process.stdout:
                 self.queue.put(line.rstrip("\n"))
         finally:
@@ -112,9 +115,32 @@ class TailCommand:
         thread.join()
 
 
+class StopTailCommand(ABC):
+    @abstractmethod
+    def request(self, process: subprocess.Popen):
+        pass
+
+
+class StopByCloseStdin(StopTailCommand):
+    """This is like ctrl-d."""
+
+    def request(self, process: subprocess.Popen):
+        assert process.stdin is not None
+        process.stdin.close()
+
+
+class StopBySigInt(StopTailCommand):
+    """This is like ctrl-c."""
+
+    def request(self, process: subprocess.Popen):
+        process.send_signal(signal.SIGINT)
+        # note: process.returncode will be negative signal integer
+
+
 @dataclass
 class NewTailCommand:
     args: list[str]
+    stop: StopTailCommand
     line_buffer_size: int = 1000
 
     def returncode(self) -> Optional[int]:
@@ -146,9 +172,7 @@ class NewTailCommand:
         return self
 
     def __exit__(self, *_) -> bool:
-        assert self.process.stdin is not None
-        # TODO like ctrl-d, but probably not all binaries exit because of that
-        self.process.stdin.close()
+        self.stop.request(self.process)
         while self.process.poll() is None and self.thread.is_alive():
             self._flush_queue()
             self.process.wait(0.1)
