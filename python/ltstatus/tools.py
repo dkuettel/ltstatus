@@ -146,7 +146,7 @@ class NewTailCommand:
     def returncode(self) -> Optional[int]:
         return self.process.poll()
 
-    def wait_for_chatter(self, timeout: Optional[float] = None):
+    def wait_for_chatter(self, timeout: Optional[float] = None) -> bool:
         try:
             self.queue.get(timeout=timeout)
         except Empty:
