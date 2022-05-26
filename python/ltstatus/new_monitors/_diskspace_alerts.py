@@ -18,11 +18,11 @@ class Monitor(PollingMonitor):
     def __post_init__(self):
         self.limits = {path.expanduser(): limit for path, limit in self.limits.items()}
 
-    def updates(self) -> Iterator[Optional[str]]:
+    def updates(self) -> Iterator[str]:
         while True:
             yield self.get_state()
 
-    def get_state(self) -> Optional[str]:
+    def get_state(self) -> str:
 
         # using GiB=2**30 instead of GB=1e9, because thats what most other linux tools show
         GiB = 2 ** 30
@@ -38,6 +38,4 @@ class Monitor(PollingMonitor):
                     # TODO because of the round the "<" could look stupid :)
                     alerts.append(f"{folder}@{round(free)}<{round(limit)}GiB")
 
-        if len(alerts) == 0:
-            return None
         return ",".join(alerts)

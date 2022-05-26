@@ -10,6 +10,10 @@ from typing import Iterator, Optional
 from .threading import Nursery
 
 State = dict[str, Optional[str]]
+# convention
+#   None - > missing state (meaning no data received yet for that key and still waiting)
+#   "" -> empty state, usually not shown to the user (ultimately up to Format.apply)
+#   "..." -> actual state, shown to the user
 
 
 @dataclass
@@ -48,10 +52,10 @@ class Output(ABC):
 # TODO reading from a queue (generically) batched with back-off could be utility for monitors
 # rewrite and make run_from_states to run_from_queue ?
 def generate_states_from_queue(
+    state: State,
     updates: Queue[State],
     timeout: float = 1 / 30,
 ) -> Iterator[State]:
-    state = State()
     yield state
     while True:
         state.update(updates.get())
@@ -71,6 +75,7 @@ def run_from_states(states: Iterator[State], format: Format, output: Output):
 
 
 def run_update_threads(
+    state: State,
     threads: list[UpdateThread],
     format: Format,
     output: Output,
@@ -79,7 +84,7 @@ def run_update_threads(
     with Nursery(c.exit, c.updates) as n:
         for t in threads:
             n.run(lambda: t.run(c))
-        states = generate_states_from_queue(c.updates)
+        states = generate_states_from_queue(state, c.updates)
         try:
             run_from_states(states, format, output)
         except KeyboardInterrupt:

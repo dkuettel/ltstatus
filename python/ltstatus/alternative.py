@@ -13,7 +13,7 @@ class RealtimeContext:
     name: str
 
     def __post_init__(self):
-        self.last_update = object()
+        self.last_update = None
 
     def should_exit(self) -> bool:
         return self.update_context.should_exit()
@@ -21,7 +21,7 @@ class RealtimeContext:
     def sleep(self, seconds: float):
         self.update_context.sleep(seconds)
 
-    def send(self, update: Optional[str]):
+    def send(self, update: str):
         if update == self.last_update:
             return
         self.update_context.send({self.name: update})
@@ -42,6 +42,10 @@ class RealtimeThread(UpdateThread):
     monitor: RealtimeMonitor
 
     def run(self, context: UpdateContext):
+        # TODO catch any exception, or return as well
+        # use context to either set to None or mark as failed
+        # but what about those that set to "" because nothing there (no dropbox)
+        # and then exit? that should stay, right? so only show fail, not normal exit
         self.monitor.run(RealtimeContext(context, self.monitor.name))
 
 
@@ -50,7 +54,7 @@ class PollingMonitor(ABC):
     name: str
 
     @abstractmethod
-    def updates(self) -> Iterator[Optional[str]]:
+    def updates(self) -> Iterator[str]:
         """This iterator needs to be infinite"""
 
 
@@ -71,17 +75,6 @@ class PollingThread(UpdateThread):
                 batch.update({name: next(update)})
             context.send(batch)
             context.sleep(self.interval)
-
-
-@dataclass
-class OrderedFormat(Format):
-    order: list[str]
-    format: Format
-    waiting: str = ""  # alternatives: ..., , …
-
-    def apply(self, state: State) -> str:
-        ordered_state = {name: state.get(name, self.waiting) for name in self.order}
-        return self.format.apply(ordered_state)
 
 
 def run(
@@ -115,11 +108,10 @@ def run(
     if len(polling) > 0:
         threads.append(PollingThread(polling, polling_interval))
 
-    ordered_format = OrderedFormat(names, format)
-
     run_update_threads(
+        state={name: None for name in names},
         threads=threads,
-        format=ordered_format,
+        format=format,
         output=output,
     )
 

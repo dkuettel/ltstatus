@@ -12,7 +12,6 @@ class Monitor(RealtimeMonitor):
     name: str = "spotify"
 
     def run(self, context: RealtimeContext):
-        last_update = None
         for state in watch_and_generate_spotify_states(timeout=1):
             if context.should_exit():
                 return
@@ -36,11 +35,11 @@ class SpotifyState:
     def from_not_running(cls):
         return cls(running=False)
 
-    def as_update(self) -> Optional[str]:
+    def as_update(self) -> str:
         if self.running is None:
             return "?"
         if not self.running:
-            return None
+            return ""
         if None in {self.artist, self.playing, self.title}:
             return "spotify starting"
         return f"{self.artist} {'-' if self.playing else '#'} {self.title}"

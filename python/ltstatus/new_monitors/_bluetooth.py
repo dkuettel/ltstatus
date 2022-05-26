@@ -34,7 +34,7 @@ class Monitor(RealtimeMonitor):
                         continue
                     context.send(self.get_state())
 
-    def get_state(self):
+    def get_state(self) -> str:
 
         try:
             enabled = "Powered: yes" in run_cmd("bluetoothctl show")

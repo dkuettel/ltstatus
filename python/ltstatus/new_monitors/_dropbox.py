@@ -34,7 +34,7 @@ class DropboxClient:
             stream.close()
             socket.close()
 
-    def get_status(self) -> bool:
+    def get_status(self) -> tuple[bool, int]:
 
         # the protocol is:
         # send request newline, done newline
@@ -82,6 +82,6 @@ class Monitor(RealtimeMonitor):
                     context.send(content)
                     context.sleep(self.interval)
         except FileNotFoundError:
-            context.send(None)
+            context.send("")
         except ConnectionRefusedError:
             context.send("?")

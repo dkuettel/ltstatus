@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Dict, Iterator, Optional, Union
+from typing import Dict, Iterator, Union
 
 from psutil import process_iter
 
@@ -15,11 +15,11 @@ class Monitor(PollingMonitor):
     name: str = "process-alerts"
     flags: Dict[str, Union[str, re.Pattern]] = ffield(dict)
 
-    def updates(self) -> Iterator[Optional[str]]:
+    def updates(self) -> Iterator[str]:
         while True:
             yield self.get_state()
 
-    def get_state(self) -> Optional[str]:
+    def get_state(self) -> str:
 
         raised = set()
 
@@ -32,8 +32,5 @@ class Monitor(PollingMonitor):
                 assert type(pattern) == re.Pattern, pattern
                 if any(pattern.fullmatch(v) for v in process.info.values()):
                     raised.add(flag)
-
-        if not raised:
-            return None
 
         return ",".join(sorted(raised))
