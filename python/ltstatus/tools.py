@@ -158,6 +158,14 @@ class NewTailCommand:
             pass
         return True
 
+    def get_some_lines(self, timeout: Optional[float] = None) -> Iterator[str]:
+        try:
+            yield self.queue.get(timeout=timeout)
+            while True:
+                yield self.queue.get_nowait()
+        except Empty:
+            pass
+
     def __enter__(self) -> NewTailCommand:
         self.queue = Queue(maxsize=self.line_buffer_size)
         self.process = subprocess.Popen(
@@ -198,11 +206,12 @@ class NewTailCommand:
 
 def tail_file(path: Union[str, Path]):
     """tail lines of a file as it grows, non-blocking thru a queue"""
-    return TailCommand.as_context(
+    return NewTailCommand(
         args=[
             "tail",
             "--lines=+0",
             "-F",
             str(path),
-        ]
+        ],
+        stop=StopBySigInt(),
     )
