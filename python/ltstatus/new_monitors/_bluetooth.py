@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from subprocess import CalledProcessError
 
 from ..alternative import RealtimeContext, RealtimeMonitor
-from ..tools import NewTailCommand, run_cmd
+from ..tools import NewTailCommand, StopByCloseStdin, run_cmd
 
 
 @dataclass
@@ -17,7 +17,7 @@ class Monitor(RealtimeMonitor):
         context.send(self.get_state())
 
         while not context.should_exit():
-            with NewTailCommand(args=["bluetoothctl"]) as tail:
+            with NewTailCommand(args=["bluetoothctl"],stop=StopByCloseStdin()) as tail:
                 while not context.should_exit():
                     if tail.returncode() is not None:
                         # TODO is that true? does bluetoothctl fail? what's missing? X is not needed for bluetooth
