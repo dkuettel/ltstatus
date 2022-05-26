@@ -7,3 +7,4 @@ from ._nvidia import Monitor as nvidia
 from ._process_alerts import Monitor as process_alerts
 from ._redshift import Monitor as redshift
 from ._sound import Monitor as sound
+from ._spotify import Monitor as spotify
