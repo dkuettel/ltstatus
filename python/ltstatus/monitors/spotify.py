@@ -133,6 +133,8 @@ def ask_dbus_for_full_state(con) -> SpotifyState:
     )
 
 
+# TODO seems like this also gets messages from chrome playing stuff, and maybe vlc and things
+# how can we make sure we use only spotify messages?
 def update_state_from_properties_message(message, state: SpotifyState) -> SpotifyState:
 
     try:

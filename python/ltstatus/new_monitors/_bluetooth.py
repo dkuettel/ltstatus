@@ -16,6 +16,10 @@ class Monitor(RealtimeMonitor):
 
         context.send(self.get_state())
 
+        # TODO overall, in many places with threads, if they fail we are just stuck with the last update
+        # should we in the wrapper check the final exception and mark the state?
+        # if we return cleanly we should set it to None? or back to missing?
+
         while not context.should_exit():
             with NewTailCommand(args=["bluetoothctl"],stop=StopByCloseStdin()) as tail:
                 while not context.should_exit():

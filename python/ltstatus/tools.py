@@ -147,6 +147,8 @@ class NewTailCommand:
         return self.process.poll()
 
     def wait_for_chatter(self, timeout: Optional[float] = None) -> bool:
+        # TODO this is not robust with timeout=None and an failed or exited process
+        # ideally then it will return False
         try:
             self.queue.get(timeout=timeout)
         except Empty:
@@ -159,6 +161,8 @@ class NewTailCommand:
         return True
 
     def get_some_lines(self, timeout: Optional[float] = None) -> Iterator[str]:
+        # TODO this is not robust with timeout=None and an failed or exited process
+        # ideally then the Iterator will exit
         try:
             yield self.queue.get(timeout=timeout)
             while True:

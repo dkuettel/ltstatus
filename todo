@@ -7,6 +7,7 @@ x make sure exceptions show up in a log file, thru the threading and queues
     - make sure stdout is clean and only stderr contains noise
 - notify user if something hasnt updated in a long time, or mark somehow for now
 - debug version output to understand what updated, and why a new line has been printed
+    - with color output to indicate?
 x clean readme and then see if yves can test it
     x rename to ltstatus (repository and folder)
     x should run-ltstatus just be ltstatus?

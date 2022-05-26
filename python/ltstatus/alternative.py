@@ -60,6 +60,10 @@ class PollingThread(UpdateThread):
     interval: float = 1.0
 
     def run(self, context: UpdateContext):
+        # TODO this forces an update every interval
+        # even if no one really had an update
+        # but iterators cannot return something saying "no update"
+        # we can only here check if it's still the same?
         updates = {m.name: m.updates() for m in self.monitors}
         while not context.should_exit():
             batch = State()

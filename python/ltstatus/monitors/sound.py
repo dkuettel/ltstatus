@@ -26,6 +26,7 @@ class Monitor(ThreadedMonitor):
 
         with TailCommand.as_context("pactl subscribe") as log:
             while not self.exit.is_set():
+                # TODO can be stuck forever :/
                 events = log.get_some_lines()
                 sink_event = any(re_sink_event.fullmatch(e) for e in events)
                 if sink_event:
