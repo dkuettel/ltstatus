@@ -128,10 +128,23 @@ def test():
             Path("/var/lib/docker"): 2.0,
             Path("/"): 10.0,
             Path("~"): 5.0,
-        }
+        },
     )
+    pa = m.process_alerts(flags={"steam": r".*steam.*"})
+
     run(
-        monitors=[da],
+        monitors=[
+            m.spotify(),
+            m.redshift(),
+            m.bluetooth(),
+            m.sound(),
+            m.dropbox(),
+            da,
+            m.cpu(),
+            m.nvidia(),
+            m.datetime(),
+            pa,
+        ],
         polling_interval=1,
         format=formats.tmux(),
         output=outputs.stdout(),
