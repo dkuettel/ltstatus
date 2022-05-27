@@ -42,11 +42,11 @@ class RealtimeThread(UpdateThread):
     monitor: RealtimeMonitor
 
     def run(self, context: UpdateContext):
-        # TODO catch any exception, or return as well
-        # use context to either set to None or mark as failed
-        # but what about those that set to "" because nothing there (no dropbox)
-        # and then exit? that should stay, right? so only show fail, not normal exit
-        self.monitor.run(RealtimeContext(context, self.monitor.name))
+        mcontext = RealtimeContext(context, self.monitor.name)
+        try:
+            self.monitor.run(mcontext)
+        except:
+            mcontext.send(f"{self.monitor.name} failed")
 
 
 @dataclass
@@ -68,6 +68,8 @@ class PollingThread(UpdateThread):
         # even if no one really had an update
         # but iterators cannot return something saying "no update"
         # we can only here check if it's still the same?
+        # TODO we also dont react nicely here to any exception
+        # either set the state of that one, or start skipping? right now state will be stalled
         updates = {m.name: m.updates() for m in self.monitors}
         while not context.should_exit():
             batch = State()
