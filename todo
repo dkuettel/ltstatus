@@ -1,3 +1,15 @@
+
+using nerdfont icons:
+- fontawesome candidates https://fontawesome.com/v6/icons
+    - something about pro-level for v5.9 or above
+    - 
+    - 
+    - 
+    - 
+    - 
+    - 
+    - 
+
 general:
 x make types clearer, have class Updates and note its Dict[str, Union[str, Exception]] or something
     x same for UpdatesQueue, not just for coding but also for documentation
