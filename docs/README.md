@@ -1,28 +1,27 @@
-# ltstatus - a low-tec status lib in python
+# ltstatus
 
-* [overview](#overview)
-* [install and test](#install-and-test)
-* [configuration](#configuration)
-* [use with tmux](#use-with-tmux)
-* [use with dwm](#use-with-dwm)
-* [available monitors](#available-monitors)
+`ltstatus` outputs status lines suitable for consumption by, eg, `tmux` or `dwm`, and other similar tools. `ltstatus` is written in python.
 
+Examples:
 
-# overview
-
-`ltstatus` outputs status lines suitable for consumption by, eg, `tmux` or `dwm`:
-
-* tmux (https://github.com/tmux/tmux/wiki) ![tmux example](.readme/tmux-example.png)
+* tmux (https://github.com/tmux/tmux/wiki) ![tmux example](images/tmux-example.png)
   (There are many fully-featured tmux status line frameworks out there.
   `ltstatus` only offers the part as annotated above.
   It _does not_ offer a full tmux status line framework.)
 
-* dwm (https://dwm.suckless.org/) ![dwm example](.readme/dwm-example.png)
+* dwm (https://dwm.suckless.org/) ![dwm example](images/dwm-example.png)
+
+# versions
+
+Note that this project is using semantic versioning.
+Currently all versions are tagged `v1.x.x` with no breaking changes.
+
+# motivation
 
 Shell scripting is a venerable alternative and can go a long way.
 The internet is full of tutorials for `tmux` status lines, also for `dwm` and the like.
 I have used that alternative for a long time.
-Shell scripting can get tricky to maintain when the complexity increases.
+Shell scripts can get tricky to maintain when the complexity increases.
 As you start to tweak the details of what you see in the status line, you might want to try something else.
 
 The main problem with a shell script was that if you wanted it to be reacting fast to changes,
@@ -30,6 +29,7 @@ then you had to refresh it very often, as in `while sleep 0.5s; do collect_and_o
 But most status elements dont need much updating.
 I wanted to minimize the updates:
 _"date and time"_ should only update once a minute, while _"bluetooth"_ should update the millisecond a device has connected.
+Similarly _"spotify"_ should change the status the moment the song changes.
 This should produce a real-time display while not using much cpu.
 `ltstatus` was born out of this _non-epic_ struggle.
 
@@ -39,7 +39,7 @@ Yet we all know that _relative_ is the best kind of accuracy!
 `ltstatus` is useful to my workflow, and I also just enjoyed working on it :sunglasses:.
 
 
-## install and test
+# install and test
 
 Checkout and setup in a location of your choice:
 
@@ -48,6 +48,8 @@ git clone git@github.com:dkuettel/ltstatus.git
 cd ltstatus
 ./setup
 ```
+
+Checkout a specific tag if you need a reproducible setup.
 
 `./setup` should take care of everything (tested on an ubuntu 20.04):
 - install apt-get dependencies
@@ -70,7 +72,7 @@ This is how it might look:
 ```
 
 
-## configuration
+# configuration
 
 There are no dedicated configuration files.
 A configuration is written as python code.
@@ -100,7 +102,7 @@ if you want it to be configurable from the command line.
 Often however it's easier to have separate `lt-config.py`s per use case.
 
 
-## use with tmux
+# use with tmux
 
 See `./examples/tmux-status.py` as a start for your own configuration:
 
@@ -167,7 +169,7 @@ tmux set-option -g status-right ' #(path/to/tmux-status.py) '
 ```
 
 
-## use with dwm
+# use with dwm
 
 Mostly the same as the above section for `tmux`.
 See `./examples/dwm-status.py` as a start for your own configuration.
