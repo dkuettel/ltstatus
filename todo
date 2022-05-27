@@ -11,8 +11,6 @@ using nerdfont icons:
     - 
 
 general:
-x make types clearer, have class Updates and note its Dict[str, Union[str, Exception]] or something
-    x same for UpdatesQueue, not just for coding but also for documentation
 x make sure exceptions show up in a log file, thru the threading and queues
     x notify works
     - add logging to a file, notify in status with "check ~/.log-ltstatus" or so
@@ -20,31 +18,8 @@ x make sure exceptions show up in a log file, thru the threading and queues
 - notify user if something hasnt updated in a long time, or mark somehow for now
 - debug version output to understand what updated, and why a new line has been printed
     - with color output to indicate?
-x clean readme and then see if yves can test it
-    x rename to ltstatus (repository and folder)
-    x should run-ltstatus just be ltstatus?
-    x sound fails when switching bose to headset mode
-    - features list to better advertise?
-        - especially need to explain regular vs realtime
-    x still some ~dkuettel specific things, make generic, and or add explicitely to examples
-    x include tmux and dwm how-to here? probably nicer
-    x rebase/merge, and fix examples with explicit format settings
 - time to setup all those things, especially with vim: pylint, black, isort, configs each of, venv handling
-x make it ready end-to-end for tmux
-    x does tmux kill the process when not needed? or should I exit periodically? nice it kills it
-    - if killed, need to check that everything shutsdown clean then
-    - also logging will help to be sure I guess
-        x or check in process tree
-    x note tmux does not update more than 1/s anyway, should we then batch things? or just do whatever?
-x make it ready end-to-end for dwm
-    x make an example, same as mine
-    x test, use it, commit
-    o need to adapt timings, spotify and stuff reacts very slow, anyway spotify could become realtime if possible
-        x spotify is now realtime
 x dwm version uses much cpu!? also dbus heavy
-    x but only when started from within xsession, manual seems fine
-    x seems to go at rate limit, kinda surprising though that this is already using so much cpu, on dbus also, so inefficient?
-    x its because bluetoothctl fails early on, no dbus or something? anyway we dont try to restart bluetoothctl and work on an empty subprocess
     - i also still see more updates than I would think with dwm setting, make that debug view after all to understand who is aggressive
         - probably some of the still-lazy callback implementations
 - add commit hook, for format at least, maybe also for pylint
@@ -52,31 +27,13 @@ x dwm version uses much cpu!? also dbus heavy
 - maybe do make a send update thing that remembers the last content, so that not everybody duplicates that logic
     - this prevents from sending same state
     - but still every monitor should make an effort to not even try to send an update often
-x bluetooth seems to react slow
-    x in direct test as fast as bluetoothctl
-    x but with dwm seems slower, buffering? xsetroot slow?
-    x maybe output to log and tail and compare
-    x difficult to say, feels slugish but can tell absolutely
-x bluetooth hcitool dev shows too many devices, because headset is two in headset mode
-    x connected to how it shows ? for speakers in headset mode
 - why .xsession log file for status is empty?
 - dbus
     o would be nice to handle it a bit more readable
-    x blocking jeepney is quite nice
-    x check if there are messages that notify us of spotify exiting, so we are not stuck with an old content
-    x maybe rules that match can also be used as switch or handlers
-    x and maybe we dont send and wait for reply, in an easy setting we just loop over everything incoming and trigger some reply when needed
     x I think netflix or other mediaplayer stuff might send "playing" and then the spotify monitor is confused
 - have cpu calm monitor also show disk bandwidth in similar manner?
-x use utf icons
-    x browse at www.utf8icons.com or www.w3schools.com/charsets
 o calm
-    x probably show compute and memory separate? id, lo, me, hi
-    x because it feels weird when idle but memory high
-    x maybe utf icons are nice there for 4 states?
     - or a "graph like"? to see past, well that's maybe the linuxy (0.4, 0.8, 0.1)?
-    x or a histogram of how many are in speed state 1 2 3?
-        x could work well with bars or stack or arrow?
     - histogram with braille more compact? or with numbers? also rescale to highest probably?
 - is readthedocs a good idea? or stick with small readme
     - also make the readme templated to quicker produce the images
