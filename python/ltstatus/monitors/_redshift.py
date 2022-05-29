@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
 
-from ..alternative import RealtimeContext, RealtimeMonitor
+from .. import RealtimeContext, RealtimeMonitor
 from ..tools import ffield, tail_file
 
 

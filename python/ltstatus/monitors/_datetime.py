@@ -1,7 +1,7 @@
 import time
 from dataclasses import dataclass
 
-from ..alternative import RealtimeContext, RealtimeMonitor
+from .. import RealtimeContext, RealtimeMonitor
 
 
 @dataclass

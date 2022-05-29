@@ -5,7 +5,7 @@ from typing import Optional
 
 import psutil
 
-from ..alternative import RealtimeContext, RealtimeMonitor
+from .. import RealtimeContext, RealtimeMonitor
 from ..indicators import HistogramIndicator, RatioIndicator, bin_themes
 from ..tools import ffield
 

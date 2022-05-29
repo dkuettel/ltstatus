@@ -4,7 +4,7 @@ from typing import Dict, Iterator, Union
 
 from psutil import process_iter
 
-from ..alternative import PollingMonitor
+from .. import PollingMonitor
 from ..tools import ffield
 
 

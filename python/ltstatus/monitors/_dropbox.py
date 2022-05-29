@@ -5,7 +5,7 @@ from io import FileIO
 from pathlib import Path
 from socket import AF_UNIX, SOCK_STREAM, socket as new_socket
 
-from ..alternative import RealtimeContext, RealtimeMonitor
+from .. import RealtimeContext, RealtimeMonitor
 from ..tools import ffield
 
 pattern_1file = re.compile(r'(Syncing|Indexing|Uploading) ".[^"]".*')

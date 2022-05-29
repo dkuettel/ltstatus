@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict
 
-from ..alternative import RealtimeContext, RealtimeMonitor
+from .. import RealtimeContext, RealtimeMonitor
 from ..tools import NewTailCommand, StopBySigInt, ffield, run_cmd
 
 re_sink_event = re.compile(r"Event '.+' on sink #\d+")

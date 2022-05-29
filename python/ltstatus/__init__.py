@@ -121,7 +121,7 @@ def run(
 def test():
     from pathlib import Path
 
-    from ltstatus import formats, new_monitors as m, outputs
+    from ltstatus import formats, monitors as m, outputs, run
 
     da = m.diskspace_alerts(
         limits={
@@ -152,6 +152,4 @@ def test():
 
 
 if __name__ == "__main__":
-    from . import alternative
-
-    alternative.test()
+    test()

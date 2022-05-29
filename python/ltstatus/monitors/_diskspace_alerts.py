@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterator, Optional
+from typing import Dict, Iterator
 
 from psutil import disk_usage
 
-from ..alternative import PollingMonitor
+from .. import PollingMonitor
 from ..tools import ffield
 
 

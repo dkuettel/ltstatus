@@ -1,53 +1,42 @@
-#!bin/ltstatus
+#!ltstatus
 from pathlib import Path
 
-from ltstatus import RateLimitedMonitors, RegularGroupMonitor, StdoutStatus, monitors
+from ltstatus import formats, monitors as m, outputs, run
 
-monitor = RateLimitedMonitors(
+sound = m.sound(
+    aliases={
+        "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
+        "Starship/Matisse HD Audio Controller Pro": "speakers",
+        "iFi (by AMR) HD USB Audio Pro": "ifi",
+    },
+)
+
+diskspace_alerts = m.diskspace_alerts(
+    limits={
+        Path("/var/lib/docker"): 2.0,
+        Path("/"): 10.0,
+        Path("~"): 5.0,
+    },
+)
+
+process_alerts = m.process_alerts(flags={"steam": r".*steam.*"})
+
+run(
     monitors=[
-        monitors.nvidia.Monitor(),
-        monitors.datetime.Monitor(),
-        monitors.redshift.Monitor(
-            format=monitors.redshift.format_period,
+        m.spotify(),
+        m.redshift(format=m._redshift.format_period),
+        m.bluetooth(),
+        m.sound(
+            aliases={"Starship/Matisse HD Audio Controller Analog Stereo": "speakers"}
         ),
-        monitors.dropbox.Monitor(),
-        monitors.bluetooth.Monitor(),
-        monitors.sound.Monitor(
-            aliases={
-                "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
-            },
-        ),
-        monitors.spotify.Monitor(),
-        RegularGroupMonitor(
-            interval=1,
-            monitors=[
-                monitors.cpu.Monitor(),
-                monitors.diskspace_alerts.Monitor(
-                    limits={
-                        Path("/var/lib/docker"): 2.0,
-                        Path("/"): 10.0,
-                        Path("~"): 5.0,
-                    },
-                ),
-                monitors.process_alerts.Monitor(flags={"steam": r".*steam.*"}),
-            ],
-        ),
+        m.dropbox(),
+        diskspace_alerts,
+        m.cpu(),
+        m.nvidia(),
+        m.datetime(),
+        process_alerts,
     ],
+    polling_interval=1,
+    format=formats.tmux(),
+    output=outputs.stdout(),
 )
-
-status = StdoutStatus(
-    monitor=monitor,
-    order=[
-        "spotify",
-        "redshift",
-        "bluetooth",
-        "sound",
-        "dropbox",
-        "diskspace-alerts",
-        "cpu",
-        "nvidia",
-        "datetime",
-    ],
-)
-
-status.run()

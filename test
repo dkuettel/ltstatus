@@ -1,1 +1,5 @@
-examples/test.py
+#!/bin/zsh
+set -eu -o pipefail
+
+base=${0:A:h}
+$base/bin/ltstatus $base/examples/test.py

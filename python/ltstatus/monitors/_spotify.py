@@ -4,7 +4,7 @@ from typing import Optional
 from jeepney import DBusAddress, MatchRule, MessageType, Properties, message_bus
 from jeepney.io.blocking import open_dbus_connection
 
-from ..alternative import RealtimeContext, RealtimeMonitor
+from .. import RealtimeContext, RealtimeMonitor
 
 
 @dataclass

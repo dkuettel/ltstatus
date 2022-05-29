@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from subprocess import CalledProcessError
 
-from ..alternative import RealtimeContext, RealtimeMonitor
+from .. import RealtimeContext, RealtimeMonitor
 from ..tools import NewTailCommand, StopByCloseStdin, run_cmd
 
 
