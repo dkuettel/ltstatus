@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 from .. import RealtimeContext, RealtimeMonitor
-from ..tools import NewTailCommand, StopBySigInt, ffield, run_cmd
+from ..tools import TailCommand, StopBySigInt, ffield, run_cmd
 
 re_sink_event = re.compile(r"Event '.+' on sink #\d+")
 
@@ -23,7 +23,7 @@ class Monitor(RealtimeMonitor):
 
         context.send(self.get_state())
 
-        with NewTailCommand(args=["pactl", "subscribe"], stop=StopBySigInt()) as log:
+        with TailCommand(args=["pactl", "subscribe"], stop=StopBySigInt()) as log:
             while not context.should_exit():
                 if log.returncode() is not None:
                     context.send("pactl failed")
