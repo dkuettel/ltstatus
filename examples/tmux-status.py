@@ -18,6 +18,7 @@ run(
         m.cpu(),
         m.nvidia(),
     ],
+    # NOTE tmux as of around version 3.3 does not update more often than once a second
     polling_interval=1,
     format=formats.tmux(),
     output=outputs.stdout(),

@@ -14,7 +14,8 @@ Examples:
 # versions
 
 Note that this project is using semantic versioning.
-Currently all versions are tagged `v1.x.x` with no breaking changes.
+Currently all versions are tagged.
+The current `v2.x.x` has breaking changes with respect to `v1.x.x`.
 
 # motivation
 
@@ -33,9 +34,15 @@ Similarly _"spotify"_ should change the status the moment the song changes.
 This should produce a real-time display while not using much cpu.
 `ltstatus` was born out of this _non-epic_ struggle.
 
-As it is typical for these kind of projects, I want to claim that `ltstatus` is light-weight, easy to hack, and guided by trying to stay minimal.
-However, disclaimerly, the accuracy of that statement is relative at best.
-Yet we all know that _relative_ is the best kind of accuracy!
+I want to claim that `ltstatus` is light-weight and easy to hack:
+
+- light-weight: No busy threads, all is done with blocking syscalls when there is waiting involved.
+  However, it is not currently implemented using any async features of python.
+
+- easy to hack: This was a bit of an exercise for me to try and write code that is easy to understand for a fresh reader.
+  If you want to get into the code, start with `python/ltstatus/__init__.py:run`
+  If you want to adapt or create a new monitor, start with one of the shorter monitors in `python/ltstatus/monitors`.
+
 `ltstatus` is useful to my workflow, and I also just enjoyed working on it :sunglasses:.
 
 
@@ -57,7 +64,7 @@ Checkout a specific tag if you need a reproducible setup.
 - install python dependencies
 
 As a small test, you can run `bin/ltstatus examples/test.py`, or just `./test`.
-You should see some regular updates line by line on stdout.
+You should see some regular updates line by line on stdout, this is how `tmux` consumes it.
 As not all statuses might apply to your system, some maybe be showing as `...`.
 Currently, you might even get an exception, as not all statuses reactly kindly to missing observables.
 In that case, just go and disable the offendig status in `./examples/test.py`.
@@ -76,84 +83,27 @@ This is how it might look:
 
 There are no dedicated configuration files.
 A configuration is written as python code.
-See `./examples/*` for inspiration.
+See `./examples` for inspiration, in particular `tmux-status.py` or `dwm-status.py`.
 Most should be clear from there, but the doc-strings in `./python/ltstatus/*` can also be useful.
-The available statuses are found in `./python/ltstatus/monitors`, see their docstrings for details.
+The available monitors are found in `./python/ltstatus/monitors`, see their docstrings for details.
 This is also where new monitors can be added.
 
-With a custom configuration `lt-config.py` ready, it can be run using `bin/ltstatus lt-config.py`.
+With a custom configuration, for example `tmux-status.py`, ready, it can be run using `bin/ltstatus tmux-status.py`.
 Add `./bin` to the path to make handling easier.
-Especially convenient when using `#!ltstatus` at the beginning of an executable `lt-config.py`.
-
-See below for concrete examples with `tmux` and `dwm`.
-
-If you want to dive deeper, `./examples/test.py` is a good place to start.
-You will notice there are two main kinds of monitors:
-First, `ThreadedMonitor` is a real-time monitor that reacts immediately to state changes.
-Usually it does so by using smart IO operations that block.
-These monitors are typically grouped with a `RateLimitedMonitors` to make their updates responsive but prevent spamming.
-Second, `CallbackMonitor`s, usually grouped with a `RegularGroupMonitor`, are updated in fixed intervals and do not react in real-time.
+Especially convenient when using `#!ltstatus` at the beginning of an executable `tmux-status.py`.
+If you drop the extension and make it executable, you can use it just as `./tmux-status`.
 
 Note:
-Within `lt-config.py` you have complete freedom.
+Within any of your `some-status.py` you have complete freedom.
 Apart from setting up your `ltstatus` configuration,
 you can also decide to parse input arguments (maybe using `click`),
 if you want it to be configurable from the command line.
-Often however it's easier to have separate `lt-config.py`s per use case.
+Often however it's easier to have separate `xyz-status.py`s per use case.
 
 
 # use with tmux
 
-See `./examples/tmux-status.py` as a start for your own configuration:
-
-```python
-#!bin/ltstatus
-from pathlib import Path
-
-from ltstatus import RateLimitedMonitors, RegularGroupMonitor, StdoutStatus, monitors
-
-monitor = RateLimitedMonitors(
-    rate=1,
-    monitors=[
-        monitors.nvidia.Monitor(),
-        monitors.dropbox.Monitor(),
-        RegularGroupMonitor(
-            interval=1,
-            monitors=[
-                monitors.cpu.Monitor(),
-                monitors.diskspace_alerts.Monitor(
-                    limits={
-                        Path("/var/lib/docker"): 2.0,
-                        Path("/"): 10.0,
-                        Path("~"): 5.0,
-                    },
-                ),
-            ],
-        ),
-    ],
-)
-
-status = StdoutStatus(
-    monitor=monitor,
-    order=[
-        "diskspace-alerts",
-        "dropbox",
-        "cpu",
-        "nvidia",
-    ],
-    separator=" ",
-    prefix="[",
-    postfix="]",
-    waiting="...",
-)
-
-status.run()
-```
-
-Hopefully most things are obvious.
-Note especially that `tmux` (as of around version `3.3`) does not update its status more than once a second.
-Thus `rate=1` and `interval=1` in the configuration above.
-
+See `./examples/tmux-status.py` as a start for your own configuration.
 Assuming you made your `tmux-status.py` executable as described in the previous section,
 you can then test it within a tmux session:
 
@@ -174,17 +124,16 @@ tmux set-option -g status-right ' #(path/to/tmux-status.py) '
 Mostly the same as the above section for `tmux`.
 See `./examples/dwm-status.py` as a start for your own configuration.
 
-Note especially the use of `XsetrootStatus` instead of `StdoutStatus`.
+Note especially the use of `outputs.dwm()` instead of `outputs.tmux()`.
 This means you cant easily observe the stdout output for testing.
-Replace it with `StdoutStatus` while testing.
+Replace it with `outputs.tmux()` while testing.
 
 Note also that `dwm` displays any update, unlike `tmux` that does it at most once second.
-This means `RateLimitedMonitors(rate=30, ...)` produces realtime updates for, eg, _"bluetooth"_.
 
 
 ## available monitors
 
-See docstrings in `./python/ltstatus/monitors/*.py` for details:
+See docstrings in `./python/ltstatus/monitors` for details:
 
 - bluetooth
 - cpu
