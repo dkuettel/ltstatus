@@ -11,6 +11,9 @@ using nerdfont icons:
     - 
 
 general:
+- on ctrl-c or any other kind of exit
+    - output should be informed to potentially send empty status?
+    - eg, dwm sticks with the last datetime
 x make sure exceptions show up in a log file, thru the threading and queues
     x notify works
     - add logging to a file, notify in status with "check ~/.log-ltstatus" or so
