@@ -11,6 +11,8 @@ class Segments(Format):
     postfix: str = ""
     separator: str = ", "
     waiting: str = ""  # alternatives: ..., , …
+    head: str = ""
+    tail: str = ""
 
     def apply(self, state: State) -> str:
         decorated = (
@@ -18,7 +20,7 @@ class Segments(Format):
             for value in state.values()
             if value != ""
         )
-        return self.separator.join(decorated)
+        return self.head + self.separator.join(decorated) + self.tail
 
 
 def plain() -> Format:
@@ -30,4 +32,4 @@ def tmux() -> Format:
 
 
 def dwm() -> Format:
-    return Segments(prefix="", postfix="", separator=" | ")
+    return Segments(prefix="", postfix="", separator=" | ", head=" ", tail=" ")
