@@ -12,20 +12,31 @@ from ltstatus import PollingMonitor
 class Monitor(PollingMonitor):
     name: str = "dropbox"
     command_socket: Path = Path("~/.dropbox/command_socket")
+    idle: str = "dbox"
+    sync: str = "sync"
+    missing: str = "db??"
+    error: str = "db!!"
+
+    def with_icons(self) -> Monitor:
+        self.idle = ""
+        self.sync = ""
+        self.missing = ""
+        self.error = ""
+        return self
 
     def updates(self) -> Iterator[str]:
         while True:
             try:
                 yield from self.connected_updates()
             except FileNotFoundError:
-                yield "db??"
+                yield self.missing
             except ConnectionRefusedError:
-                yield "db!!"
+                yield self.error
 
     def connected_updates(self) -> Iterator[str]:
         with DropboxClient(self.command_socket) as c:
             while True:
-                yield "dbox" if c.is_idle() else "sync"
+                yield self.idle if c.is_idle() else self.sync
 
 
 @dataclass
