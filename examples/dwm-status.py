@@ -1,4 +1,4 @@
-#!ltstatus
+#!/usr/bin/env ltstatus
 
 from ltstatus import formats, monitors as m, outputs, run
 
