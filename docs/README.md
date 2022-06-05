@@ -1,4 +1,4 @@
-# ltstatus
+# ltstatus (v2.0.0)
 
 `ltstatus` outputs status lines suitable for consumption by, eg, `tmux` or `dwm`, and other similar tools. `ltstatus` is written in python.
 
@@ -10,40 +10,6 @@ Examples:
   It _does not_ offer a full tmux status line framework.)
 
 * dwm (https://dwm.suckless.org/) ![dwm example](images/dwm-example.png)
-
-# versions
-
-Note that this project is using semantic versioning.
-Currently all versions are tagged.
-The current `v2.x.x` has breaking changes with respect to `v1.x.x`.
-
-# motivation
-
-Shell scripting is a venerable alternative and can go a long way.
-The internet is full of tutorials for `tmux` status lines, also for `dwm` and the like.
-I have used that alternative for a long time.
-Shell scripts can get tricky to maintain when the complexity increases.
-As you start to tweak the details of what you see in the status line, you might want to try something else.
-
-The main problem with a shell script was that if you wanted it to be reacting fast to changes,
-then you had to refresh it very often, as in `while sleep 0.5s; do collect_and_outputs; done`.
-But most status elements dont need much updating.
-I wanted to minimize the updates:
-_"date and time"_ should only update once a minute, while _"bluetooth"_ should update the millisecond a device has connected.
-Similarly _"spotify"_ should change the status the moment the song changes.
-This should produce a real-time display while not using much cpu.
-`ltstatus` was born out of this _non-epic_ struggle.
-
-I want to claim that `ltstatus` is light-weight and easy to hack:
-
-- light-weight: No busy threads, all is done with blocking syscalls when there is waiting involved.
-  However, it is not currently implemented using any async features of python.
-
-- easy to hack: This was a bit of an exercise for me to try and write code that is easy to understand for a fresh reader.
-  If you want to get into the code, start with `python/ltstatus/__init__.py:run`
-  If you want to adapt or create a new monitor, start with one of the shorter monitors in `python/ltstatus/monitors`.
-
-`ltstatus` is useful to my workflow, and I also just enjoyed working on it :sunglasses:.
 
 
 # install and test
@@ -71,7 +37,7 @@ In that case, just go and disable the offendig status in `./examples/test.py`.
 
 This is how it might look:
 ```
-> bin/ltstatus examples/all.py
+> bin/ltstatus examples/test.py
 [...] [...] [...] [...] [...] [...] [...] [...] [2021-03-07 Sun 13:04]
 [Spotify Premium] [redshift@1.00] [bt off] [speakers=100%] [✓] [ 0% 7/31G] [ 1% 1/11G] [2021-03-07 Sun 13:04]
 [Spotify Premium] [redshift@1.00] [bt off] [speakers=100%] [✓] [ 0% 7/31G] [ 0% 1/11G] [2021-03-07 Sun 13:04]
@@ -85,12 +51,12 @@ There are no dedicated configuration files.
 A configuration is written as python code.
 See `./examples` for inspiration, in particular `tmux-status.py` or `dwm-status.py`.
 Most should be clear from there, but the doc-strings in `./python/ltstatus/*` can also be useful.
-The available monitors are found in `./python/ltstatus/monitors`, see their docstrings for details.
+The available monitors are found in `./python/ltstatus/monitors/*`, see their docstrings for details.
 This is also where new monitors can be added.
 
-With a custom configuration, for example `tmux-status.py`, ready, it can be run using `bin/ltstatus tmux-status.py`.
-Add `./bin` to the path to make handling easier.
-Especially convenient when using `#!ltstatus` at the beginning of an executable `tmux-status.py`.
+With a custom configuration ready, for example `tmux-status.py`, it can be run using `bin/ltstatus tmux-status.py`.
+To make handling easier, add `./bin` to the path, or symlink `bin/ltstatus` into your path.
+Especially convenient when using `#!/usr/bin/env ltstatus` at the beginning of an executable `tmux-status.py`.
 If you drop the extension and make it executable, you can use it just as `./tmux-status`.
 
 Note:
@@ -131,9 +97,9 @@ Replace it with `outputs.tmux()` while testing.
 Note also that `dwm` displays any update, unlike `tmux` that does it at most once second.
 
 
-## available monitors
+# available monitors
 
-See docstrings in `./python/ltstatus/monitors` for details:
+See the respective classes `Monitor` in `./python/ltstatus/monitors/*.py` for details:
 
 - bluetooth
 - cpu
@@ -144,3 +110,60 @@ See docstrings in `./python/ltstatus/monitors` for details:
 - redshift
 - sound
 - spotify
+
+
+# motivation
+
+Shell scripting is a venerable alternative and can go a long way.
+The internet is full of tutorials for `tmux` status lines, also for `dwm` and the like.
+I have used that alternative for a long time.
+Shell scripts can get tricky to maintain when the complexity increases.
+As you start to tweak the details of what you see in the status line, you might want to try something else.
+
+The main problem with a shell script was that if you wanted it to be reacting fast to changes,
+then you had to refresh it very often, as in `while sleep 0.5s; do collect_and_outputs; done`.
+But most status elements dont need much updating.
+I wanted to minimize the updates:
+_"date and time"_ should only update once a minute, while _"bluetooth"_ should update the millisecond a device has connected.
+Similarly _"spotify"_ should change the status the moment the song changes.
+This should produce a real-time display while not using much cpu.
+`ltstatus` was born out of this _non-epic_ struggle.
+
+I want to claim that `ltstatus` is light-weight and easy to hack:
+
+- light-weight: No busy threads, all is done with blocking syscalls when there is waiting involved.
+  However, it is not currently implemented using any async features of python.
+
+- easy to hack: This was a bit of an exercise for me to try and write code that is easy to understand for a fresh reader.
+  If you want to get into the code, start with `python/ltstatus/__init__.py:run`
+  If you want to adapt or create a new monitor, start with one of the shorter monitors in `python/ltstatus/monitors`.
+
+`ltstatus` is useful to my workflow, and I also just enjoyed working on it :sunglasses:.
+
+
+# versioning
+
+Note that this project is using semantic versioning.
+We consider the following python references as part of the public interface:
+
+- `ltstatus.run`
+- `ltstatus.formats.*`
+- `ltstatus.outputs.*`
+- `ltstatus.monitors.*`
+
+However, when it comes to individual monitors,
+versioning might be applied a bit more loosely.
+
+Versions are tagged `vMAJOR.MINOR.PATCH`.
+The current `v2.x.x` public interface has breaking changes with respect to `v1.x.x`.
+
+
+# releases
+
+releases:
+- `v2.0.0` flatter public interface
+- `v1.1.3` improve spotify monitor
+- `v1.1.2` internal fixes
+- `v1.1.1` minor fixes
+- `v1.1.0` new monitor
+- `v1.0.0` initial release
