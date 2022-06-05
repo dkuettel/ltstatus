@@ -1,17 +1,42 @@
 
 shorts:
+x after restart try bluetooth, not sure if broken or buggy
+x replace cpu with cpu and cpu-cores, 2 monitors
+x before release, think about all having format member? more uniform? backwards compat?
+    x because icons bool is not always clean, but we could have it when you want the default set?
+    x call it *icons or *nerdfont?
+    x or make constructors .with_icons(bool) or something? can be chained, handles formatters, but you can still do it yourself
+    x or not constructor, but just modifier, easy to append after configuration, very backwards-compat too
+    x drafts
+        x m.Cpu().with_icons(icons: bool) -> self, chainable, but not a new instance currently
+        x m.Cpu.with_icons(**args), or name from_icons? an actual "constructor", but where to have icons: bool?
+        x but that makes it very verbose if we want it parametrized with icons: bool, in code
+        x unless we make the list and then apply on the list? that makes it easier?
+    x but what about main formatter?
+        x functions can also have .stuff :) would make it feel uniform?
+x it will be easier moving forward without the WIP commit, just keep the diff
+x update all types to 3.9 format (List to list and stuff)
 x use absolute imports, more readable, less problematic
     x I think in main format and output can be imported now? no circular
 x monitors as normal, no import magic, best is no subimports anyway
     x check again if we do need the __init__.py anymore
 x plus an m.py with convenience stuff
-- namespaces are easier than parent modules, plus 'from a import b' is not the same as 'import a.b as b'
-    - but then how to define the public interface? a top-level __init__ is quite natural for this
-    - does pylint or pyright at least flag things like this?
-    - 'import ltstatus; ltstatus.run' and 'import ltstatus.run; ltstatus.run' shadows each other
+x namespaces are easier than parent modules, plus 'from a import b' is not the same as 'import a.b as b'
+    x but then how to define the public interface? a top-level __init__ is quite natural for this
+    x does pylint or pyright at least flag things like this?
+    x 'import ltstatus; ltstatus.run' and 'import ltstatus.run; ltstatus.run' shadows each other
 x make note of what is considered public interface in the readme
     x plus add some release history then
 x make the examples exactly mine, so I dont need to keep them separate? just link?
+
+spotify:
+x still wrong
+x it picks up on non-spotify media updates, like youtube in chrome
+x I think it sends updates too often, they are check and suppressed, but still
+    x lets only try to send a new state when we have reason to
+x we could show progress in song? info should be there, some good nerdfontstuff for it?
+    x but first we have ascii, a good one there? because icons=True comes later
+    x no so attractive, it would require more timing to keep things updated
 
 
 using nerdfont icons:
@@ -25,6 +50,24 @@ using nerdfont icons:
     - 
     - 
     - 
+- dropbox candidates
+    - ﮻ﲏﮛﯩﯯﮫﲊ
+    - nice 
+- others
+    -   ﴮ  
+    - ﯀ ﰳ
+    - dice = ""
+    - dark_numbers = ""  #   or add ﯀ for notification?
+    - light_numbers = ""
+    - decked_numbers = ""
+    -   ﲾ
+    - 
+- nvidia candidates
+    - temps = ""
+    - new_use = RatioIndicator(temps).format(compute.gpu / 100)
+    - batteries = ""  # 
+    - new_memory = RatioIndicator(batteries).format(memory.used / memory.total)
+    - context.send(f"{new_use}{new_memory}")
 o see now if colors work? they could also be easy to indicate on/off
     - and of course activity :)
     - it's okay, nicer but dont overuse it
