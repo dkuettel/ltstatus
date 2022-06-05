@@ -7,16 +7,15 @@ import psutil
 
 from ltstatus import RealtimeContext, RealtimeMonitor
 from ltstatus.indicators import HistogramIndicator, RatioIndicator, bin_themes
-from ltstatus.tools import ffield
 
 
 @dataclass
 class Monitor(RealtimeMonitor):
     name: str = "cpu"
     cores: Optional[HistogramIndicator] = None
-    total_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["LMH"]))
-    single_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["lmh"]))
-    memory: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["LMH"]))
+    total_compute: RatioIndicator = RatioIndicator(bin_themes["LMH"])
+    single_compute: RatioIndicator = RatioIndicator(bin_themes["lmh"])
+    memory: RatioIndicator = RatioIndicator(bin_themes["LMH"])
     interval: float = 1.0
 
     def run(self, context: RealtimeContext):

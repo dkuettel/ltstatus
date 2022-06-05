@@ -10,15 +10,14 @@ from pynvml import (
 
 from ltstatus import RealtimeContext, RealtimeMonitor
 from ltstatus.indicators import RatioIndicator, bin_themes
-from ltstatus.tools import ffield
 
 
 @dataclass
 class Monitor(RealtimeMonitor):
     name: str = "nvidia"
     interval: float = 1.0
-    total_compute: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["LMH"]))
-    memory: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["LMH"]))
+    total_compute: RatioIndicator = RatioIndicator(bin_themes["LMH"])
+    memory: RatioIndicator = RatioIndicator(bin_themes["LMH"])
 
     # TODO looks like it could be polling as well?
 

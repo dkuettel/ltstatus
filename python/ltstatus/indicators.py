@@ -2,25 +2,23 @@ import math
 from dataclasses import dataclass
 from typing import List
 
-from ltstatus.tools import ffield
-
 # browse at www.utf8icons.com or www.w3schools.com/charsets
 bin_themes = {
-    "bar": list(" ▁▂▃▄▅▆▇█"),
-    "pie": list("○◔◑◕●"),
-    "moon": list("🌕🌔🌓🌒🌑"),
-    "triangle": list("·▸►▶"),
-    "stack": list("·−=≡≣"),
-    "arrow": list("·→⇉⇶"),
-    "ascii-arrows": ["---", ">--", ">>-", ">>>"],
-    "LMH": list(".LMH"),
-    "lmh": list(".lmh"),
+    "bar": tuple(" ▁▂▃▄▅▆▇█"),
+    "pie": tuple("○◔◑◕●"),
+    "moon": tuple("🌕🌔🌓🌒🌑"),
+    "triangle": tuple("·▸►▶"),
+    "stack": tuple("·−=≡≣"),
+    "arrow": tuple("·→⇉⇶"),
+    "ascii-arrows": ("---", ">--", ">>-", ">>>"),
+    "LMH": tuple(".LMH"),
+    "lmh": tuple(".lmh"),
 }
 
 
-@dataclass
+@dataclass(frozen=True)
 class RatioIndicator:
-    bins: List[str] = ffield(lambda: bin_themes["pie"])
+    bins: List[str] = bin_themes["pie"]
 
     def format(self, ratio: float) -> str:
         index = math.floor(ratio * len(self.bins))
@@ -28,10 +26,10 @@ class RatioIndicator:
         return self.bins[index]
 
 
-@dataclass
+@dataclass(frozen=True)
 class HistogramIndicator:
     length: int = 3
-    ratio: RatioIndicator = ffield(lambda: RatioIndicator(bin_themes["bar"]))
+    ratio: RatioIndicator = RatioIndicator(bin_themes["bar"])
 
     def format(self, ratios: List[float]) -> str:
         hist = [0] * self.length
