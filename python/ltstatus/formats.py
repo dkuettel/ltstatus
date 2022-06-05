@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .core import Format, State
+from ltstatus.core import Format, State
 
 
 @dataclass

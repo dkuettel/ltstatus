@@ -5,8 +5,8 @@ from io import FileIO
 from pathlib import Path
 from socket import AF_UNIX, SOCK_STREAM, socket as new_socket
 
-from .. import RealtimeContext, RealtimeMonitor
-from ..tools import ffield
+from ltstatus import RealtimeContext, RealtimeMonitor
+from ltstatus.tools import ffield
 
 pattern_1file = re.compile(r'(Syncing|Indexing|Uploading) ".[^"]".*')
 pattern_files = re.compile(r"(Syncing|Indexing|Uploading) (?P<count>\d+) files.*")

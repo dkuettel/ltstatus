@@ -8,9 +8,9 @@ from pynvml import (
     nvmlShutdown,
 )
 
-from .. import RealtimeContext, RealtimeMonitor
-from ..indicators import RatioIndicator, bin_themes
-from ..tools import ffield
+from ltstatus import RealtimeContext, RealtimeMonitor
+from ltstatus.indicators import RatioIndicator, bin_themes
+from ltstatus.tools import ffield
 
 
 @dataclass

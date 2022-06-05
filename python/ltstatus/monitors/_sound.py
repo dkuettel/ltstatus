@@ -2,8 +2,8 @@ import re
 from dataclasses import dataclass
 from typing import Dict
 
-from .. import RealtimeContext, RealtimeMonitor
-from ..tools import TailCommand, StopBySigInt, ffield, run_cmd
+from ltstatus import RealtimeContext, RealtimeMonitor
+from ltstatus.tools import StopBySigInt, TailCommand, ffield, run_cmd
 
 re_sink_event = re.compile(r"Event '.+' on sink #\d+")
 

@@ -4,7 +4,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Iterator, Optional, Union
 
-from .core import Format, Output, State, UpdateContext, UpdateThread, run_update_threads
+from ltstatus.core import (
+    Format,
+    Output,
+    State,
+    UpdateContext,
+    UpdateThread,
+    run_update_threads,
+)
 
 
 @dataclass
@@ -87,12 +94,12 @@ def run(
 ):
 
     if format is None:
-        from . import formats
+        from ltstatus import formats
 
         format = formats.plain()
 
     if output is None:
-        from . import outputs
+        from ltstatus import outputs
 
         output = outputs.stdout()
 

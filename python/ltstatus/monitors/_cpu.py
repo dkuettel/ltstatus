@@ -5,9 +5,9 @@ from typing import Optional
 
 import psutil
 
-from .. import RealtimeContext, RealtimeMonitor
-from ..indicators import HistogramIndicator, RatioIndicator, bin_themes
-from ..tools import ffield
+from ltstatus import RealtimeContext, RealtimeMonitor
+from ltstatus.indicators import HistogramIndicator, RatioIndicator, bin_themes
+from ltstatus.tools import ffield
 
 
 @dataclass

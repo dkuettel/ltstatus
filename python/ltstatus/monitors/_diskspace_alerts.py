@@ -4,8 +4,8 @@ from typing import Dict, Iterator
 
 from psutil import disk_usage
 
-from .. import PollingMonitor
-from ..tools import ffield
+from ltstatus import PollingMonitor
+from ltstatus.tools import ffield
 
 
 # TODO maybe alerts could have a different interface and be grouped, so they sort stably?

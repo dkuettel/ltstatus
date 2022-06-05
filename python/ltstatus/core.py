@@ -7,7 +7,7 @@ from queue import Empty, Queue
 from threading import Event
 from typing import Iterator, Optional
 
-from .threading import Nursery
+from ltstatus.threading import Nursery
 
 State = dict[str, Optional[str]]
 # convention

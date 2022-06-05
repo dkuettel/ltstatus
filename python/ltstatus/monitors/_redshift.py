@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
 
-from .. import RealtimeContext, RealtimeMonitor
-from ..tools import ffield, tail_file
+from ltstatus import RealtimeContext, RealtimeMonitor
+from ltstatus.tools import ffield, tail_file
 
 
 @dataclass

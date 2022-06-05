@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .core import Output
-from .tools import run_cmd
+from ltstatus.core import Output
+from ltstatus.tools import run_cmd
 
 
 class Print(Output):
