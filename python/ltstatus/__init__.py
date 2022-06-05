@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Iterator, Optional, Union
 
+from ltstatus import formats, outputs
 from ltstatus.core import (
     Format,
     Output,
@@ -92,16 +93,8 @@ def run(
     format: Optional[Format] = None,
     output: Optional[Output] = None,
 ):
-
-    if format is None:
-        from ltstatus import formats
-
-        format = formats.plain()
-
-    if output is None:
-        from ltstatus import outputs
-
-        output = outputs.stdout()
+    format = format or formats.plain()
+    output = output or outputs.stdout()
 
     # TODO still not super happy about the need for names for identifying
     # people can mess it up. for meta info and debug it's fine, but not for ordering and state keys
