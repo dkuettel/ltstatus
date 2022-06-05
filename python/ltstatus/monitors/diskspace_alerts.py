@@ -1,11 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterator
 
 from psutil import disk_usage
 
 from ltstatus import PollingMonitor
-from ltstatus.tools import ffield
 
 
 # TODO maybe alerts could have a different interface and be grouped, so they sort stably?
@@ -13,7 +12,7 @@ from ltstatus.tools import ffield
 class Monitor(PollingMonitor):
     name: str = "diskspace-alerts"
     # map folders to minimum size in GB (alert when actual < limit)
-    limits: Dict[Path, float] = ffield(dict)
+    limits: Dict[Path, float] = field(default_factory=dict)
 
     def __post_init__(self):
         self.limits = {path.expanduser(): limit for path, limit in self.limits.items()}

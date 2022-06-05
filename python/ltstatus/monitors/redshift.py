@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from ltstatus import RealtimeContext, RealtimeMonitor
-from ltstatus.tools import ffield, tail_file
+from ltstatus.tools import tail_file
 
 
 @dataclass
@@ -52,7 +52,7 @@ def format_period(state: RedshiftState) -> str:
 @dataclass
 class Monitor(RealtimeMonitor):
     name: str = "redshift"
-    log_file: Path = ffield(lambda: Path("~/.log-redshift"))
+    log_file: Path = Path("~/.log-redshift")
     format: Callable = format_period
 
     def run(self, context: RealtimeContext):

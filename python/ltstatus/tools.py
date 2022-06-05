@@ -10,10 +10,6 @@ from threading import Thread
 from typing import Iterator, List, Optional, Union
 
 
-def ffield(factory):
-    return field(default_factory=factory)
-
-
 def run_cmd(cmd: Union[str, List[str]]) -> str:
 
     if type(cmd) is str:

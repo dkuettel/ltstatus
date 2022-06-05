@@ -1,9 +1,9 @@
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict
 
 from ltstatus import RealtimeContext, RealtimeMonitor
-from ltstatus.tools import StopBySigInt, TailCommand, ffield, run_cmd
+from ltstatus.tools import StopBySigInt, TailCommand, run_cmd
 
 re_sink_event = re.compile(r"Event '.+' on sink #\d+")
 
@@ -17,7 +17,7 @@ re_volume = re.compile(r"\tVolume: .* (?P<value>\d+)% .*$", re.MULTILINE)
 @dataclass
 class Monitor(RealtimeMonitor):
     name: str = "sound"
-    aliases: Dict[str, str] = ffield(dict)
+    aliases: Dict[str, str] = field(default_factory=dict)
 
     def run(self, context: RealtimeContext):
 
