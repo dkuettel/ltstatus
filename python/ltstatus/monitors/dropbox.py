@@ -1,87 +1,90 @@
-import re
-from contextlib import contextmanager
+from __future__ import annotations
+
 from dataclasses import dataclass
-from io import FileIO
 from pathlib import Path
 from socket import AF_UNIX, SOCK_STREAM, socket as new_socket
+from typing import Iterator
 
-from ltstatus import RealtimeContext, RealtimeMonitor
-from ltstatus.tools import ffield
+from ltstatus import PollingMonitor
 
-pattern_1file = re.compile(r'(Syncing|Indexing|Uploading) ".[^"]".*')
-pattern_files = re.compile(r"(Syncing|Indexing|Uploading) (?P<count>\d+) files.*")
-pattern_done = re.compile(r"Up to date")
+
+@dataclass
+class Monitor(PollingMonitor):
+    name: str = "dropbox"
+    command_socket: Path = Path("~/.dropbox/command_socket")
+
+    def updates(self) -> Iterator[str]:
+        while True:
+            try:
+                yield from self.connected_updates()
+            except FileNotFoundError:
+                yield "db??"
+            except ConnectionRefusedError:
+                yield "db!!"
+
+    def connected_updates(self) -> Iterator[str]:
+        with DropboxClient(self.command_socket) as c:
+            while True:
+                yield "dbox" if c.is_idle() else "sync"
 
 
 @dataclass
 class DropboxClient:
-    stream: FileIO
+    """Small reverse-engineered specification based on their own cli client:
 
-    @classmethod
-    @contextmanager
-    def as_context(cls, command_socket: Path):
+    The protocol is text and line based, not binary.
+    Request = r"request\ndone\n"
+    Reply = r"ok\nvalue\tvalue\t...\ndone\n"; always ok + done, values depends on request
+    The command socket is not closed and can be reused.
 
-        command_socket = command_socket.expanduser()
+    For the request "get_dropbox_status\ndone\n" these are the replies:
+        Either 2 or 3 values.
+        Entry 1 is always "status"
+        Entry 2 is high-level:
+            "Up to date"
+            "Syncing..."
+            "Syncing 4 files"
+            "Syncing "file-d"
+            "Syncing "file-d" • 1 sec"
+            "Syncing 2 files • 2 secs"
+            "Syncing 4 files"
+        Entry 3 is low-level:
+            "Uploading "file-d"..."
+            "Uploading 2 files..."
+            "Uploading 2 files (25,711 KB/sec, 1 sec)"
+            "Indexing 5 files..."
+            "Downloading "file-b"..."
+            "Downloading "file-b" (18,818 KB/sec, 1 sec)"
 
-        socket = new_socket(AF_UNIX, SOCK_STREAM)
-        socket.connect(str(command_socket))
-        stream = socket.makefile("rw")
+    Unfortunately so far I didnt find a way to subscribe. We can only poll.
+    Also the dropbox daemon in systemd doesnt give log messages.
+    I could not find a verbose switch.
+    Otherwise we could subscribe to the systemd log messages.
+    """
 
-        try:
-            yield cls(stream=stream)
+    command_socket: Path = Path("~/.dropbox/command_socket")
 
-        finally:
-            stream.close()
-            socket.close()
+    def __enter__(self) -> DropboxClient:
+        self.socket = new_socket(AF_UNIX, SOCK_STREAM)
+        self.socket.connect(str(self.command_socket.expanduser()))
+        self.stream = self.socket.makefile("rw")
+        return self
 
-    def get_status(self) -> tuple[bool, int]:
+    def __exit__(self, *_) -> bool:
+        self.stream.close()
+        self.socket.close()
+        del self.stream, self.socket
+        return False
 
-        # the protocol is:
-        # send request newline, done newline
-        # then receive ok newline, reply tab-separated values newline, done newline
-        # the socket stream is not closed and can be reused
-
+    def is_idle(self) -> bool:
         self.stream.write("get_dropbox_status\ndone\n")
         self.stream.flush()
 
         assert self.stream.readline().rstrip("\n") == "ok"
-        messages = self.stream.readline().rstrip("\n").split("\t")
+        replies = self.stream.readline().rstrip("\n").split("\t")
         assert self.stream.readline().rstrip("\n") == "done"
 
-        idle = False
-        count = 0
+        assert len(replies) in {2, 3}
+        assert replies[0] == "status"
 
-        for message in messages:
-            if pattern_done.fullmatch(message):
-                idle = True
-            if pattern_1file.fullmatch(message):
-                count = max(count, 1)
-            if m := pattern_files.fullmatch(message):
-                count = max(count, int(m["count"]))
-
-        return idle, count
-
-
-# TODO threaded now but not realtime, the dropbox control socket does not support notifications
-# so we make it polling eventually?
-@dataclass
-class Monitor(RealtimeMonitor):
-    name: str = "dropbox"
-    interval: float = 1.0
-    command_socket: Path = ffield(lambda: Path("~/.dropbox/command_socket"))
-
-    def run(self, context: RealtimeContext):
-        try:
-            with DropboxClient.as_context(command_socket=self.command_socket) as dc:
-                while not context.should_exit():
-                    idle, count = dc.get_status()
-                    if idle:
-                        content = "dbox"
-                    else:
-                        content = f"db{count:02d}"
-                    context.send(content)
-                    context.sleep(self.interval)
-        except FileNotFoundError:
-            context.send("")
-        except ConnectionRefusedError:
-            context.send("?")
+        return replies[1] == "Up to date"
