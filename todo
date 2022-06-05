@@ -1,4 +1,19 @@
 
+shorts:
+x use absolute imports, more readable, less problematic
+    x I think in main format and output can be imported now? no circular
+x monitors as normal, no import magic, best is no subimports anyway
+    x check again if we do need the __init__.py anymore
+x plus an m.py with convenience stuff
+- namespaces are easier than parent modules, plus 'from a import b' is not the same as 'import a.b as b'
+    - but then how to define the public interface? a top-level __init__ is quite natural for this
+    - does pylint or pyright at least flag things like this?
+    - 'import ltstatus; ltstatus.run' and 'import ltstatus.run; ltstatus.run' shadows each other
+x make note of what is considered public interface in the readme
+    x plus add some release history then
+x make the examples exactly mine, so I dont need to keep them separate? just link?
+
+
 using nerdfont icons:
 - fontawesome candidates https://fontawesome.com/v6/icons
     - something about pro-level for v5.9 or above
@@ -9,8 +24,19 @@ using nerdfont icons:
     - 
     - 
     - 
+    - 
+o see now if colors work? they could also be easy to indicate on/off
+    - and of course activity :)
+    - it's okay, nicer but dont overuse it
+    - how to handle it, global icon switch probably not a good idea
+    - just leave all in users control? he can model it in his own config.py?
+
 
 general:
+o still would like to switch top new python
+o readme
+    - put just a link to the examples
+    - and also there as a comment explain how to use it with tmux or dwm
 - on ctrl-c or any other kind of exit
     - output should be informed to potentially send empty status?
     - eg, dwm sticks with the last datetime
@@ -21,7 +47,9 @@ x make sure exceptions show up in a log file, thru the threading and queues
 - notify user if something hasnt updated in a long time, or mark somehow for now
 - debug version output to understand what updated, and why a new line has been printed
     - with color output to indicate?
+    - dwm has https://dwm.suckless.org/patches/statuscolors/
 - time to setup all those things, especially with vim: pylint, black, isort, configs each of, venv handling
+    - have a general template for projects, with a tmux-dev? ./bin ./dev/bin and things like that?
 x dwm version uses much cpu!? also dbus heavy
     - i also still see more updates than I would think with dwm setting, make that debug view after all to understand who is aggressive
         - probably some of the still-lazy callback implementations
