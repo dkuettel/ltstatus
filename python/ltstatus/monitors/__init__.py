@@ -1,10 +1,23 @@
-from ltstatus.monitors._bluetooth import Monitor as bluetooth
-from ltstatus.monitors._cpu import Monitor as cpu
-from ltstatus.monitors._datetime import Monitor as datetime
-from ltstatus.monitors._diskspace_alerts import Monitor as diskspace_alerts
-from ltstatus.monitors._dropbox import Monitor as dropbox
-from ltstatus.monitors._nvidia import Monitor as nvidia
-from ltstatus.monitors._process_alerts import Monitor as process_alerts
-from ltstatus.monitors._redshift import Monitor as redshift
-from ltstatus.monitors._sound import Monitor as sound
-from ltstatus.monitors._spotify import Monitor as spotify
+from ltstatus.monitors.bluetooth import Monitor as Bluetooth
+from ltstatus.monitors.cpu import Monitor as Cpu
+from ltstatus.monitors.datetime import Monitor as Datetime
+from ltstatus.monitors.diskspace_alerts import Monitor as DiskspaceAlerts
+from ltstatus.monitors.dropbox import Monitor as Dropbox
+from ltstatus.monitors.nvidia import Monitor as Nvidia
+from ltstatus.monitors.process_alerts import Monitor as ProcessAlerts
+from ltstatus.monitors.redshift import Monitor as Redshift
+from ltstatus.monitors.sound import Monitor as Sound
+from ltstatus.monitors.spotify import Monitor as Spotify
+
+__all__ = [
+    "Bluetooth",
+    "Cpu",
+    "Datetime",
+    "DiskspaceAlerts",
+    "Dropbox",
+    "Nvidia",
+    "ProcessAlerts",
+    "Redshift",
+    "Sound",
+    "Spotify",
+]

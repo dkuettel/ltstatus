@@ -2,9 +2,9 @@
 
 from ltstatus import formats, monitors as m, outputs, run
 
-process_alerts = m.process_alerts(flags={"steam": r".*steam.*"})
+process_alerts = m.ProcessAlerts(flags={"steam": r".*steam.*"})
 
-sound = m.sound(
+sound = m.Sound(
     aliases={
         "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
         "Starship/Matisse HD Audio Controller Pro": "speakers",
@@ -14,12 +14,12 @@ sound = m.sound(
 
 run(
     monitors=[
-        m.spotify(),
+        m.Spotify(),
         process_alerts,
-        m.redshift(format=m._redshift.format_period),
-        m.bluetooth(),
+        m.Redshift(format=m.redshift.format_period),
+        m.Bluetooth(),
         sound,
-        m.datetime(),
+        m.Datetime(),
     ],
     polling_interval=3,
     format=formats.dwm(),

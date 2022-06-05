@@ -123,26 +123,26 @@ def test():
 
     from ltstatus import formats, monitors as m, outputs, run
 
-    da = m.diskspace_alerts(
+    da = m.DiskspaceAlerts(
         limits={
             Path("/var/lib/docker"): 2.0,
             Path("/"): 10.0,
             Path("~"): 5.0,
         },
     )
-    pa = m.process_alerts(flags={"steam": r".*steam.*"})
+    pa = m.ProcessAlerts(flags={"steam": r".*steam.*"})
 
     run(
         monitors=[
-            m.spotify(),
-            m.redshift(),
-            m.bluetooth(),
-            m.sound(),
-            m.dropbox(),
+            m.Spotify(),
+            m.Redshift(),
+            m.Bluetooth(),
+            m.Sound(),
+            m.Dropbox(),
             da,
-            m.cpu(),
-            m.nvidia(),
-            m.datetime(),
+            m.Cpu(),
+            m.Nvidia(),
+            m.Datetime(),
             pa,
         ],
         polling_interval=1,

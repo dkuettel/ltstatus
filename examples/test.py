@@ -3,7 +3,7 @@ from pathlib import Path
 
 from ltstatus import formats, monitors as m, outputs, run
 
-sound = m.sound(
+sound = m.Sound(
     aliases={
         "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
         "Starship/Matisse HD Audio Controller Pro": "speakers",
@@ -11,7 +11,7 @@ sound = m.sound(
     },
 )
 
-diskspace_alerts = m.diskspace_alerts(
+diskspace_alerts = m.DiskspaceAlerts(
     limits={
         Path("/var/lib/docker"): 2.0,
         Path("/"): 10.0,
@@ -19,21 +19,19 @@ diskspace_alerts = m.diskspace_alerts(
     },
 )
 
-process_alerts = m.process_alerts(flags={"steam": r".*steam.*"})
+process_alerts = m.ProcessAlerts(flags={"steam": r".*steam.*"})
 
 run(
     monitors=[
-        m.spotify(),
-        m.redshift(format=m._redshift.format_period),
-        m.bluetooth(),
-        m.sound(
-            aliases={"Starship/Matisse HD Audio Controller Analog Stereo": "speakers"}
-        ),
-        m.dropbox(),
+        m.Spotify(),
+        m.Redshift(format=m.redshift.format_period),
+        m.Bluetooth(),
+        sound,
+        m.Dropbox(),
         diskspace_alerts,
-        m.cpu(),
-        m.nvidia(),
-        m.datetime(),
+        m.Cpu(),
+        m.Nvidia(),
+        m.Datetime(),
         process_alerts,
     ],
     polling_interval=1,
