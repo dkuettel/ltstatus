@@ -1,8 +1,8 @@
 import math
 from dataclasses import dataclass
 
-# browse at www.utf8icons.com or www.w3schools.com/charsets
 bin_themes = {
+    # from www.utf8icons.com and www.w3schools.com/charsets
     "bar": tuple(" ▁▂▃▄▅▆▇█"),
     "pie": tuple("○◔◑◕●"),
     "moon": tuple("🌕🌔🌓🌒🌑"),
@@ -12,6 +12,13 @@ bin_themes = {
     "ascii-arrows": ("---", ">--", ">>-", ">>>"),
     "LMH": tuple(".LMH"),
     "lmh": tuple(".lmh"),
+    # from nerdfonts https://www.nerdfonts.com/
+    "dice": tuple(""),
+    "battery": tuple(""),
+    "battery!": tuple(""),
+    "thermometer": tuple(""),
+    "moon-right": tuple(""),
+    "moon-left": tuple( ""),
 }
 
 
