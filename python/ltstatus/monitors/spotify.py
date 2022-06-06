@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional
 
 from jeepney import DBusAddress, MatchRule, MessageType, Properties, message_bus
 from jeepney.io.blocking import open_dbus_connection
@@ -9,9 +9,26 @@ from jeepney.io.blocking import open_dbus_connection
 from ltstatus import RealtimeContext, RealtimeMonitor
 
 
+def format_plain(state: Optional[SpotifyState]) -> str:
+    if state is None:
+        return ""
+    return f"{state.artist} {'-' if state.playing else '#'} {state.title}"
+
+
+def format_icons(state: Optional[SpotifyState]) -> str:
+    if state is None:
+        return ""
+    return f" {state.artist} {'' if state.playing else ''} {state.title}"
+
+
 @dataclass
 class Monitor(RealtimeMonitor):
     name: str = "spotify"
+    format: Callable = format_plain
+
+    def with_icons(self) -> Monitor:
+        self.format = format_icons
+        return self
 
     def run(self, context: RealtimeContext):
         while not context.should_exit():
@@ -23,10 +40,10 @@ class Monitor(RealtimeMonitor):
 
     def run_connected(self, context: RealtimeContext):
         with SpotifyBus() as bus:
-            context.send(format_state(bus.get_state()))
+            context.send(self.format(bus.get_state()))
             while not context.should_exit():
                 if bus.wait_for_chatter(timeout=1):
-                    context.send(format_state(bus.get_state()))
+                    context.send(self.format(bus.get_state()))
 
 
 @dataclass
@@ -34,12 +51,6 @@ class SpotifyState:
     playing: bool
     artist: str
     title: str
-
-
-def format_state(state: Optional[SpotifyState]) -> str:
-    if state is None:
-        return ""
-    return f"{state.artist} {'-' if state.playing else '#'} {state.title}"
 
 
 class SpotifyBus:
