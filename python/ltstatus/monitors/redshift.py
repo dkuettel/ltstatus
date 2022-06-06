@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
 
 from ltstatus import RealtimeContext, RealtimeMonitor
+from ltstatus.indicators import RatioIndicator, bin_themes
 from ltstatus.tools import tail_file
 
 
@@ -49,11 +52,28 @@ def format_period(state: RedshiftState) -> str:
     return f"redshift {round(state.period*100)}% day"
 
 
+def format_period_icons(state: RedshiftState) -> str:
+    """shows like   """
+    if state.status == None or state.period == None:
+        return ""
+    if not state.status:
+        return "ﯦ"
+    if state.period == 1.0:
+        return ""
+    if state.period == 0.0:
+        return ""
+    return RatioIndicator(bin_themes["moon-left"]).format(1 - state.period)
+
+
 @dataclass
 class Monitor(RealtimeMonitor):
     name: str = "redshift"
     log_file: Path = Path("~/.log-redshift")
     format: Callable = format_period
+
+    def with_icons(self) -> Monitor:
+        self.format = format_period_icons
+        return self
 
     def run(self, context: RealtimeContext):
 
