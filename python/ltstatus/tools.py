@@ -7,10 +7,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from queue import Empty, Queue
 from threading import Thread
-from typing import Iterator, List, Optional, Union
+from typing import Iterator, Optional, Union
 
 
-def run_cmd(cmd: Union[str, List[str]]) -> str:
+def run_cmd(cmd: Union[str, list[str]]) -> str:
 
     if type(cmd) is str:
         args = cmd.split(" ")

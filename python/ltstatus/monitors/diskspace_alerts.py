@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterator
+from typing import Iterator
 
 from psutil import disk_usage
 
@@ -12,7 +12,7 @@ from ltstatus import PollingMonitor
 class Monitor(PollingMonitor):
     name: str = "diskspace-alerts"
     # map folders to minimum size in GB (alert when actual < limit)
-    limits: Dict[Path, float] = field(default_factory=dict)
+    limits: dict[Path, float] = field(default_factory=dict)
 
     def __post_init__(self):
         self.limits = {path.expanduser(): limit for path, limit in self.limits.items()}

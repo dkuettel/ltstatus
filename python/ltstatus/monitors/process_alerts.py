@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Dict, Iterator, Union
+from typing import Iterator, Union
 
 from psutil import process_iter
 
@@ -12,7 +12,7 @@ class Monitor(PollingMonitor):
     """notify when certain process are running, like, eg, 'steam' that might continue to run in the background"""
 
     name: str = "process-alerts"
-    flags: Dict[str, Union[str, re.Pattern]] = field(default_factory=dict)
+    flags: dict[str, Union[str, re.Pattern]] = field(default_factory=dict)
 
     def updates(self) -> Iterator[str]:
         while True:

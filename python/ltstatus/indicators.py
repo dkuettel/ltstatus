@@ -1,6 +1,5 @@
 import math
 from dataclasses import dataclass
-from typing import List
 
 # browse at www.utf8icons.com or www.w3schools.com/charsets
 bin_themes = {
@@ -18,7 +17,7 @@ bin_themes = {
 
 @dataclass(frozen=True)
 class RatioIndicator:
-    bins: List[str] = bin_themes["pie"]
+    bins: list[str] = bin_themes["pie"]
 
     def format(self, ratio: float) -> str:
         index = math.floor(ratio * len(self.bins))
@@ -31,7 +30,7 @@ class HistogramIndicator:
     length: int = 3
     ratio: RatioIndicator = RatioIndicator(bin_themes["bar"])
 
-    def format(self, ratios: List[float]) -> str:
+    def format(self, ratios: list[float]) -> str:
         hist = [0] * self.length
         for ratio in ratios:
             index = min(math.floor(ratio * self.length), self.length - 1)

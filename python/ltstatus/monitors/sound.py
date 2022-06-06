@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass, field
-from typing import Dict
 
 from ltstatus import RealtimeContext, RealtimeMonitor
 from ltstatus.tools import StopBySigInt, TailCommand, run_cmd
@@ -17,7 +16,7 @@ re_volume = re.compile(r"\tVolume: .* (?P<value>\d+)% .*$", re.MULTILINE)
 @dataclass
 class Monitor(RealtimeMonitor):
     name: str = "sound"
-    aliases: Dict[str, str] = field(default_factory=dict)
+    aliases: dict[str, str] = field(default_factory=dict)
 
     def run(self, context: RealtimeContext):
 
