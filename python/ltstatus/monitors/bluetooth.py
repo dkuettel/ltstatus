@@ -1,16 +1,29 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from subprocess import CalledProcessError
 
 from ltstatus import RealtimeContext, RealtimeMonitor
-from ltstatus.tools import TailCommand, StopByCloseStdin, run_cmd
+from ltstatus.tools import StopByCloseStdin, TailCommand, run_cmd
 
 
 @dataclass
 class Monitor(RealtimeMonitor):
     name: str = "bluetooth"
+    waiting: str = "bt..."
+    on: str = "bt@"
+    off: str = "bt off"
+    error: str = "bt?!"
+
+    def with_icons(self) -> Monitor:
+        self.waiting = ""
+        self.on = ""
+        self.off = ""
+        self.error = ""
+        return self
 
     # TODO dbus notifications could be another solution
-    # TODO could think about sending None when there is not bluetooth hardware (and exit the thread (?))
+    # TODO could think about sending "" when there is not bluetooth hardware (and exit the thread?)
 
     def run(self, context: RealtimeContext):
 
@@ -21,13 +34,12 @@ class Monitor(RealtimeMonitor):
         # if we return cleanly we should set it to None? or back to missing?
 
         while not context.should_exit():
-            with TailCommand(args=["bluetoothctl"],stop=StopByCloseStdin()) as tail:
+            with TailCommand(args=["bluetoothctl"], stop=StopByCloseStdin()) as tail:
                 while not context.should_exit():
                     if tail.returncode() is not None:
                         # TODO is that true? does bluetoothctl fail? what's missing? X is not needed for bluetooth
                         # sometimes early in the x-session bluetoothctl fails, we wait a bit and then retry
-                        state = "bt..."
-                        context.send(state)
+                        context.send(self.waiting)
                         context.sleep(1)
                         break
                     if not tail.wait_for_chatter(timeout=1):
@@ -48,9 +60,9 @@ class Monitor(RealtimeMonitor):
                     "Connected: yes" in run_cmd(f"bluetoothctl info {device}")
                     for device in devices
                 )
-                return f"bt@{connected}"
+                return self.on + str(connected)
             else:
-                return "bt off"
+                return self.off
 
         except CalledProcessError:
-            return "bt ?"
+            return self.error
