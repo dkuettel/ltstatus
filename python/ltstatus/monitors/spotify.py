@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -12,159 +14,87 @@ class Monitor(RealtimeMonitor):
     name: str = "spotify"
 
     def run(self, context: RealtimeContext):
-        for state in watch_and_generate_spotify_states(timeout=1):
-            if context.should_exit():
-                return
-            context.send(state.as_update())
+        while not context.should_exit():
+            try:
+                self.run_connected(context)
+            except Exception:
+                # TODO I dont know exactly how it fails when dbus is unavailable
+                context.send("dbus!")
+
+    def run_connected(self, context: RealtimeContext):
+        with SpotifyBus() as bus:
+            context.send(format_state(bus.get_state()))
+            while not context.should_exit():
+                if bus.wait_for_chatter(timeout=1):
+                    context.send(format_state(bus.get_state()))
 
 
 @dataclass
 class SpotifyState:
-    # TODO what should be the default values
-    running: Optional[bool] = None
-    playing: Optional[bool] = None
-    artist: Optional[str] = None
-    title: Optional[str] = None
-
-    # TODO too verbose? let's see how we do the defaults
-    @classmethod
-    def from_running(cls):
-        return cls(running=True)
-
-    @classmethod
-    def from_not_running(cls):
-        return cls(running=False)
-
-    def as_update(self) -> str:
-        if self.running is None:
-            return "?"
-        if not self.running:
-            return ""
-        if None in {self.artist, self.playing, self.title}:
-            return "spotify starting"
-        return f"{self.artist} {'-' if self.playing else '#'} {self.title}"
-
-    def is_full_state(self) -> bool:
-        return self.running == True and None not in {
-            self.artist,
-            self.playing,
-            self.title,
-        }
+    playing: bool
+    artist: str
+    title: str
 
 
-def watch_and_generate_spotify_states(timeout: Optional[float]):
-    with open_dbus_connection() as con:
+def format_state(state: Optional[SpotifyState]) -> str:
+    if state is None:
+        return ""
+    return f"{state.artist} {'-' if state.playing else '#'} {state.title}"
 
-        rule_properties = MatchRule(
+
+class SpotifyBus:
+    def __enter__(self) -> SpotifyBus:
+        self.con = open_dbus_connection()
+        rule_properties_changed = MatchRule(
             type="signal",
             interface="org.freedesktop.DBus.Properties",
             member="PropertiesChanged",
             path="/org/mpris/MediaPlayer2",
         )
-        con.send(message_bus.AddMatch(rule_properties))
-
-        rule_owners = MatchRule(
+        self.con.send(message_bus.AddMatch(rule_properties_changed))
+        rule_owner_changed = MatchRule(
             type="signal",
             sender="org.freedesktop.DBus",
             interface="org.freedesktop.DBus",
             member="NameOwnerChanged",
             path="/org/freedesktop/DBus",
         )
-        con.send(message_bus.AddMatch(rule_owners))
+        self.con.send(message_bus.AddMatch(rule_owner_changed))
+        return self
 
-        state = ask_dbus_for_full_state(con)
-        _timeout = 0
+    def __exit__(self, *_) -> bool:
+        self.con.close()
+        del self.con
+        return False
 
-        should_get_full_state = False
+    def wait_for_chatter(self, timeout: Optional[float] = None) -> bool:
+        try:
+            self.con.receive(timeout=timeout)
+            return True
+        except TimeoutError:
+            # jeepney.io.threading.ReceiveStopped can also happen
+            return False
 
-        while True:
-            if should_get_full_state:
-                state = ask_dbus_for_full_state(con)
-                should_get_full_state = not state.is_full_state()
-            try:
-                message = con.receive(timeout=_timeout)
-                _timeout = 0
-                # jeepney.io.threading.ReceiveStopped can also happen
-            except TimeoutError:
-                yield state
-                _timeout = timeout
-                continue
-            if rule_properties.matches(message):
-                state = update_state_from_properties_message(message, state)
-                continue
-            if rule_owners.matches(message):
-                state, should_get_full_state = update_state_from_owners_message(
-                    message, state
-                )
-                continue
+    def get_state(self) -> Optional[SpotifyState]:
 
-
-def ask_dbus_for_full_state(con) -> SpotifyState:
-
-    properties = Properties(
-        obj=DBusAddress(
-            "/org/mpris/MediaPlayer2",
-            "org.mpris.MediaPlayer2.spotify",
-            "org.mpris.MediaPlayer2.Player",
-        ),
-    )
-
-    playback_status = con.send_and_get_reply(properties.get("PlaybackStatus"))
-    metadata = con.send_and_get_reply(properties.get("Metadata"))
-
-    if {playback_status.header.message_type, metadata.header.message_type} != {
-        MessageType.method_return
-    }:
-        return SpotifyState.from_not_running()
-
-    return SpotifyState(
-        running=True,
-        playing=playback_status.body[0][1] == "Playing",
-        artist=",".join(metadata.body[0][1]["xesam:artist"][1]) or None,
-        title=metadata.body[0][1]["xesam:title"][1] or None,
-    )
-
-
-# TODO seems like this also gets messages from chrome playing stuff, and maybe vlc and things
-# how can we make sure we use only spotify messages?
-def update_state_from_properties_message(message, state: SpotifyState) -> SpotifyState:
-
-    try:
-        state.playing = message.body[1]["PlaybackStatus"][1] == "Playing"
-    except:
-        pass
-
-    try:
-        state.artist = (
-            ",".join(message.body[1]["Metadata"][1]["xesam:artist"][1]) or None
+        properties = Properties(
+            obj=DBusAddress(
+                "/org/mpris/MediaPlayer2",
+                "org.mpris.MediaPlayer2.spotify",
+                "org.mpris.MediaPlayer2.Player",
+            ),
         )
-    except:
-        pass
 
-    try:
-        state.title = message.body[1]["Metadata"][1]["xesam:title"][1] or None
-    except:
-        pass
+        playback_status = self.con.send_and_get_reply(properties.get("PlaybackStatus"))
+        metadata = self.con.send_and_get_reply(properties.get("Metadata"))
 
-    return state
+        if {playback_status.header.message_type, metadata.header.message_type} != {
+            MessageType.method_return
+        }:
+            return None
 
-
-def update_state_from_owners_message(
-    message, state: SpotifyState
-) -> tuple[SpotifyState, bool]:
-    """return new state and if it's advisable to get a full state from dbus"""
-    name, _, new = message.body
-    if name == "org.mpris.MediaPlayer2.spotify" and new != "":
-        return SpotifyState.from_running(), True
-    if name == "org.mpris.MediaPlayer2.spotify" and new == "":
-        return SpotifyState.from_not_running(), False
-    return state, False
-
-
-def debug():
-    for state in watch_and_generate_spotify_states(timeout=None):
-        print(state)
-
-
-if __name__ == "__main__":
-    debug()
+        return SpotifyState(
+            playing=playback_status.body[0][1] == "Playing",
+            artist=",".join(metadata.body[0][1]["xesam:artist"][1]) or "?",
+            title=metadata.body[0][1]["xesam:title"][1] or "?",
+        )
