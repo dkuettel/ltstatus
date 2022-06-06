@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass, field
+from typing import Callable
 
 from ltstatus import RealtimeContext, RealtimeMonitor
 from ltstatus.tools import StopBySigInt, TailCommand, run_cmd
@@ -13,10 +16,25 @@ re_mute = re.compile(r"\tMute: (?P<value>.+)$", re.MULTILINE)
 re_volume = re.compile(r"\tVolume: .* (?P<value>\d+)% .*$", re.MULTILINE)
 
 
+def format_plain(description: str, mute: bool, volume: int) -> str:
+    sign = "#" if mute else "="
+    return f"{description}{sign}{volume}%"
+
+
+def format_icons(description: str, mute: bool, volume: int) -> str:
+    speaker = "ﱝ" if mute else ""
+    return f"{description} {speaker} {volume}%"
+
+
 @dataclass
 class Monitor(RealtimeMonitor):
     name: str = "sound"
     aliases: dict[str, str] = field(default_factory=dict)
+    format: Callable = format_plain
+
+    def with_icons(self) -> Monitor:
+        self.format = format_icons
+        return self
 
     def run(self, context: RealtimeContext):
 
@@ -62,8 +80,6 @@ class Monitor(RealtimeMonitor):
         volume = re_volume.search(sinks, pos)
         volume, pos = int(volume["value"]), volume.end()
 
-        sign = "#" if mute else "="
         description = self.aliases.get(description, description)
-        content = f"{description}{sign}{volume}%"
 
-        return content
+        return self.format(description, mute, volume)
