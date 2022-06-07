@@ -31,5 +31,9 @@ def tmux() -> Format:
     return Segments(prefix="[", postfix="]", separator=" ")
 
 
+def tmux_with_icons() -> Format:
+    return Segments(prefix="", postfix="", separator=" ")
+
+
 def dwm() -> Format:
     return Segments(prefix="", postfix="", separator=" | ", head=" ", tail=" ")
