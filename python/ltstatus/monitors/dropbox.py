@@ -49,9 +49,9 @@ class DropboxClient:
     The command socket is not closed and can be reused.
 
     For the request "get_dropbox_status\ndone\n" these are the replies:
-        Either 2 or 3 values.
+        2 or more entries.
         Entry 1 is always "status"
-        Entry 2 is high-level:
+        Entry 2 is high-level, seems like an overall state:
             "Up to date"
             "Syncing..."
             "Syncing 4 files"
@@ -59,7 +59,7 @@ class DropboxClient:
             "Syncing "file-d" • 1 sec"
             "Syncing 2 files • 2 secs"
             "Syncing 4 files"
-        Entry 3 is low-level:
+        Other entries are low-level, seems like currently running tasks:
             "Uploading "file-d"..."
             "Uploading 2 files..."
             "Uploading 2 files (25,711 KB/sec, 1 sec)"
@@ -95,7 +95,7 @@ class DropboxClient:
         replies = self.stream.readline().rstrip("\n").split("\t")
         assert self.stream.readline().rstrip("\n") == "done"
 
-        assert len(replies) in {2, 3}
+        assert len(replies) >= 2
         assert replies[0] == "status"
 
         return replies[1] == "Up to date"
