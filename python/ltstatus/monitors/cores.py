@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterator
+from typing import Iterator, Optional
 
 import psutil
 
@@ -11,13 +11,23 @@ from ltstatus import PollingMonitor
 @dataclass
 class Monitor(PollingMonitor):
     name: str = "cores"
+    prefix: str = "cores"
+    waiting: str = "."
+    counters: Optional[list[str]] = None
+
+    def with_icons(self) -> Monitor:
+        self.prefix = ""
+        self.waiting = ""
+        # NOTE there is also  and 
+        self.counters = list("")
+        return self
 
     def updates(self) -> Iterator[str]:
 
         core_count = psutil.cpu_count()
 
         last_times = psutil.cpu_times()
-        yield "cores..."
+        yield f"{self.prefix}{self.waiting}"
 
         while True:
 
@@ -28,4 +38,9 @@ class Monitor(PollingMonitor):
 
             cores = round(compute * core_count)
 
-            yield f"cores{cores}"
+            if self.counters is None:
+                cores_str = str(cores)
+            else:
+                cores_str = self.counters[min(cores, len(self.counters) - 1)]
+
+            yield f"{self.prefix}{cores_str}"
