@@ -1,4 +1,4 @@
-# ltstatus (v2.1.0)
+# ltstatus (v2.2.0)
 
 `ltstatus` outputs status lines suitable for consumption by, eg, `tmux` or `dwm`, and other similar tools. `ltstatus` is written in python.
 
@@ -10,6 +10,12 @@ Examples:
   It _does not_ offer a full tmux status line framework.)
 
 * dwm (https://dwm.suckless.org/) ![dwm example](images/dwm-example.png)
+
+Examples with icons using nerdfonts (https://www.nerdfonts.com/):
+
+* ![tmux example](images/tmux-example-icons.png)
+
+* ![dwm example](images/dwm-example-icons.png)
 
 
 # install and test
@@ -161,6 +167,7 @@ The current `v2.x.x` public interface has breaking changes with respect to `v1.x
 # releases
 
 releases:
+- `v2.2.0` support nerdfont icons
 - `v2.1.0` split up cpu into cpu & cores
 - `v2.0.1` improve spotify and other monitors
 - `v2.0.0` flatter public interface
