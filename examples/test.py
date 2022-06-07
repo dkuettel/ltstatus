@@ -29,6 +29,7 @@ run(
         sound,
         m.Dropbox(),
         diskspace_alerts,
+        m.Cores(),
         m.Cpu(),
         m.Nvidia(),
         m.Datetime(),

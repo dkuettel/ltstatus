@@ -15,6 +15,7 @@ run(
     monitors=[
         diskspace_alerts,
         m.Dropbox(),
+        m.Cores(),
         m.Cpu(),
         m.Nvidia(),
     ],
