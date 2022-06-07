@@ -3,24 +3,31 @@ from pathlib import Path
 
 from ltstatus import formats, monitors as m, outputs, run
 
-diskspace_alerts = m.DiskspaceAlerts(
-    limits={
-        Path("/var/lib/docker"): 2.0,
-        Path("/"): 10.0,
-        Path("~"): 5.0,
-    },
-)
+# switch this off if you dont have nerdfont or something compatible
+# (see https://www.nerdfonts.com/)
+icons = True
+
+monitors = [
+    m.DiskspaceAlerts(
+        limits={
+            Path("/var/lib/docker"): 2.0,
+            Path("/"): 10.0,
+            Path("~"): 5.0,
+        },
+    ),
+    m.Dropbox(),
+    m.Cores(),
+    m.Cpu(),
+    m.Nvidia(),
+]
+
+if icons:
+    monitors = [m.with_icons() for m in monitors]
 
 run(
-    monitors=[
-        diskspace_alerts,
-        m.Dropbox(),
-        m.Cores(),
-        m.Cpu(),
-        m.Nvidia(),
-    ],
+    monitors=monitors,
     # NOTE tmux as of around version 3.3 does not update more often than once a second
     polling_interval=1,
-    format=formats.tmux(),
+    format=formats.tmux_with_icons() if icons else formats.tmux(),
     output=outputs.stdout(),
 )

@@ -3,39 +3,48 @@ from pathlib import Path
 
 from ltstatus import formats, monitors as m, outputs, run
 
-sound = m.Sound(
-    aliases={
-        "Starship/Matisse HD Audio Controller Analog Stereo": "speakers",
-        "Starship/Matisse HD Audio Controller Pro": "speakers",
+# switch this off if you dont have nerdfont or something compatible
+# (see https://www.nerdfonts.com/)
+icons = True
+
+if icons:
+    sound_aliases = {
+        "iFi (by AMR) HD USB Audio Pro": "ﰝ",
+        "apm.zero": "",
+    }
+else:
+    sound_aliases = {
         "iFi (by AMR) HD USB Audio Pro": "ifi",
-    },
-)
+        "apm.zero": "apm",
+    }
 
-diskspace_alerts = m.DiskspaceAlerts(
-    limits={
-        Path("/var/lib/docker"): 2.0,
-        Path("/"): 10.0,
-        Path("~"): 5.0,
-    },
-)
 
-process_alerts = m.ProcessAlerts(flags={"steam": r".*steam.*"})
+monitors = [
+    m.Spotify(),
+    m.Redshift(),
+    m.Bluetooth(),
+    m.Sound(aliases=sound_aliases),
+    m.Dropbox(),
+    m.DiskspaceAlerts(
+        limits={
+            Path("/var/lib/docker"): 2.0,
+            Path("/"): 10.0,
+            Path("~"): 5.0,
+        },
+    ),
+    m.Cores(),
+    m.Cpu(),
+    m.Nvidia(),
+    m.Datetime(),
+    m.ProcessAlerts(flags={"steam": r".*steam.*"}),
+]
+
+if icons:
+    monitors = [m.with_icons() for m in monitors]
 
 run(
-    monitors=[
-        m.Spotify(),
-        m.Redshift(format=m.redshift.format_period),
-        m.Bluetooth(),
-        sound,
-        m.Dropbox(),
-        diskspace_alerts,
-        m.Cores(),
-        m.Cpu(),
-        m.Nvidia(),
-        m.Datetime(),
-        process_alerts,
-    ],
+    monitors=monitors,
     polling_interval=1,
-    format=formats.tmux(),
+    format=formats.tmux_with_icons() if icons else formats.tmux(),
     output=outputs.stdout(),
 )
