@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterator
@@ -16,6 +18,9 @@ class Monitor(PollingMonitor):
 
     def __post_init__(self):
         self.limits = {path.expanduser(): limit for path, limit in self.limits.items()}
+
+    def with_icons(self) -> Monitor:
+        return self
 
     def updates(self) -> Iterator[str]:
         while True:
