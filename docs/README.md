@@ -1,4 +1,4 @@
-# ltstatus (v2.0.0)
+# ltstatus (v2.0.1)
 
 `ltstatus` outputs status lines suitable for consumption by, eg, `tmux` or `dwm`, and other similar tools. `ltstatus` is written in python.
 
@@ -161,8 +161,9 @@ The current `v2.x.x` public interface has breaking changes with respect to `v1.x
 # releases
 
 releases:
+- `v2.0.1` improve spotify and other monitors
 - `v2.0.0` flatter public interface
-- `v1.1.3` improve spotify monitor
+- `v1.1.3` fix spotify monitor
 - `v1.1.2` internal fixes
 - `v1.1.1` minor fixes
 - `v1.1.0` new monitor
