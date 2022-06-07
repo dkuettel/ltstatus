@@ -14,11 +14,20 @@ class Monitor(PollingMonitor):
     name: str = "cpu"
     compute: RatioIndicator = RatioIndicator(bin_themes["LMH"])
     memory: RatioIndicator = RatioIndicator(bin_themes["LMH"])
+    prefix: str = "cpu"
+    waiting: str = ".."
+
+    def with_icons(self) -> Monitor:
+        self.compute = RatioIndicator(bin_themes["thermometer"])
+        self.memory = RatioIndicator(bin_themes["battery!"])
+        self.prefix = ""
+        self.waiting = ""
+        return self
 
     def updates(self) -> Iterator[str]:
 
         last_times = psutil.cpu_times()
-        yield "cpu..."
+        yield f"{self.prefix}{self.waiting}"
 
         while True:
 
@@ -29,4 +38,4 @@ class Monitor(PollingMonitor):
 
             memory = psutil.virtual_memory().percent / 100
 
-            yield f"cpu{self.compute.format(compute)}{self.memory.format(memory)}"
+            yield f"{self.prefix}{self.compute.format(compute)}{self.memory.format(memory)}"
