@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass, field
 from typing import Iterator, Union
@@ -13,6 +15,9 @@ class Monitor(PollingMonitor):
 
     name: str = "process-alerts"
     flags: dict[str, Union[str, re.Pattern]] = field(default_factory=dict)
+
+    def with_icons(self) -> Monitor:
+        return self
 
     def updates(self) -> Iterator[str]:
         while True:
