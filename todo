@@ -1,4 +1,9 @@
 
+bug:
+x dropbox can have more than 2 or 3 lines, but I think only the first one matters for us
+- polling monitors would be nice if a) we dont fail because on fails and b) it's indicated but keeps running
+- idea: if heavy usage, indicate which process name or binary
+
 shorts:
 x after restart try bluetooth, not sure if broken or buggy
 x replace cpu with cpu and cpu-cores, 2 monitors
