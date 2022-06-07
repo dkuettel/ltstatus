@@ -41,6 +41,10 @@ class RealtimeMonitor(ABC):
     name: str
 
     @abstractmethod
+    def with_icons(self) -> RealtimeMonitor:
+        """Modify this monitor to use nerdfont icons if available for this monitor."""
+
+    @abstractmethod
     def run(self, context: RealtimeContext):
         """check exit regularly and send updates whenever necessary"""
 
@@ -60,6 +64,10 @@ class RealtimeThread(UpdateThread):
 @dataclass
 class PollingMonitor(ABC):
     name: str
+
+    @abstractmethod
+    def with_icons(self) -> RealtimeMonitor:
+        """Modify this monitor to use nerdfont icons if available for this monitor."""
 
     @abstractmethod
     def updates(self) -> Iterator[str]:
