@@ -11,11 +11,13 @@ if icons:
     sound_aliases = {
         "iFi (by AMR) HD USB Audio Pro": "ﰝ",
         "apm.zero": "",
+        "Dummy Output": "",
     }
 else:
     sound_aliases = {
         "iFi (by AMR) HD USB Audio Pro": "ifi",
         "apm.zero": "apm",
+        "Dummy Output": "x",
     }
 
 
