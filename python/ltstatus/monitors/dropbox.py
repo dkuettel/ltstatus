@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from pathlib import Path
 from socket import AF_UNIX, SOCK_STREAM, socket as new_socket
-from typing import Iterator
+from typing import Iterator, Optional
 
 from ltstatus import PollingMonitor
 
@@ -16,6 +17,9 @@ class Monitor(PollingMonitor):
     sync: str = "sync"
     missing: str = "db??"
     error: str = "db!!"
+    # regex patterns for synced filenames that should still indicate as idle
+    # use for noisy files that change often and you dont need to see it in the indicator
+    ignored_patterns: Optional[list[str]] = None
 
     def with_icons(self) -> Monitor:
         self.idle = ""
@@ -34,7 +38,11 @@ class Monitor(PollingMonitor):
                 yield self.error
 
     def connected_updates(self) -> Iterator[str]:
-        with DropboxClient(self.command_socket) as c:
+        if self.ignored_patterns is None:
+            compiled_patterns = []
+        else:
+            compiled_patterns = [re.compile(p) for p in self.ignored_patterns]
+        with DropboxClient(self.command_socket, compiled_patterns) as c:
             while True:
                 yield self.idle if c.is_idle() else self.sync
 
@@ -74,6 +82,7 @@ class DropboxClient:
     """
 
     command_socket: Path = Path("~/.dropbox/command_socket")
+    ignored_patterns: list[re.Pattern] = field(default_factory=list)
 
     def __enter__(self) -> DropboxClient:
         self.socket = new_socket(AF_UNIX, SOCK_STREAM)
@@ -97,5 +106,10 @@ class DropboxClient:
 
         assert len(replies) >= 2
         assert replies[0] == "status"
+
+        reply = "".join(replies)
+        for p in self.ignored_patterns:
+            if p.search(reply) is not None:
+                return True
 
         return replies[1] == "Up to date"

@@ -26,7 +26,7 @@ monitors = [
     m.Redshift(),
     m.Bluetooth(),
     m.Sound(aliases=sound_aliases),
-    m.Dropbox(),
+    m.Dropbox(ignored_patterns=[r"\w+\.osh"]),
     m.DiskspaceAlerts(
         limits={
             Path("/var/lib/docker"): 2.0,

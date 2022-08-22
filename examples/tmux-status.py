@@ -15,7 +15,7 @@ monitors = [
             Path("~"): 5.0,
         },
     ),
-    m.Dropbox(),
+    m.Dropbox(ignored_patterns=[r"\w+\.osh"]),
     m.Cores(),
     m.Cpu(),
     m.Nvidia(),
