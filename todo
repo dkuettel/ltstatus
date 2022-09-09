@@ -1,6 +1,11 @@
 
 bug:
 x dropbox can have more than 2 or 3 lines, but I think only the first one matters for us
+    - also with ignored folders, it's only saying
+        Syncing 7,972 files • 51 secs
+        Indexing 7,972 files (51 secs)
+    - probably correct, but not "really" syncing
+    - can we catch that? show busy but not data?
 - polling monitors would be nice if a) we dont fail because on fails and b) it's indicated but keeps running
 - idea: if heavy usage, indicate which process name or binary
 
