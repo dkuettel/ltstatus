@@ -54,7 +54,7 @@ using nerdfont icons:
     - 
     - 
     - 
-    - 
+    - 
 - dropbox candidates
     - ﮻ﲏﮛﯩﯯﮫﲊ
     - nice 
@@ -68,9 +68,9 @@ using nerdfont icons:
     -   ﲾ
     - 
 - nvidia candidates
-    - temps = ""
+    - temps = ""
     - new_use = RatioIndicator(temps).format(compute.gpu / 100)
-    - batteries = ""  # 
+    - batteries = "!"  #  forgot the empty one here, add fix
     - new_memory = RatioIndicator(batteries).format(memory.used / memory.total)
     - context.send(f"{new_use}{new_memory}")
 o see now if colors work? they could also be easy to indicate on/off

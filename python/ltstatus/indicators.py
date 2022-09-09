@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass
 
 bin_themes = {
-    # from www.utf8icons.com and www.w3schools.com/charsets
+    # from https://www.utf8icons.com and https://www.w3schools.com/charsets
     "bar": tuple(" ▁▂▃▄▅▆▇█"),
     "pie": tuple("○◔◑◕●"),
     "moon": tuple("🌕🌔🌓🌒🌑"),
@@ -14,11 +14,11 @@ bin_themes = {
     "lmh": tuple(".lmh"),
     # from nerdfonts https://www.nerdfonts.com/
     "dice": tuple(""),
-    "battery": tuple(""),
-    "battery!": tuple(""),
+    "battery": tuple(""),
+    "battery!": tuple(""),
     "thermometer": tuple(""),
     "moon-right": tuple(""),
-    "moon-left": tuple( ""),
+    "moon-left": tuple(""),
 }
 
 
