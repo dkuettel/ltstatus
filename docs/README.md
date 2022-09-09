@@ -1,4 +1,4 @@
-# ltstatus (v2.2.0)
+# ltstatus (v2.2.1)
 
 `ltstatus` outputs status lines suitable for consumption by, eg, `tmux` or `dwm`, and other similar tools. `ltstatus` is written in python.
 
@@ -167,6 +167,7 @@ The current `v2.x.x` public interface has breaking changes with respect to `v1.x
 # releases
 
 releases:
+- `v2.2.1` improve dropbox, sound, and some nerdfont icons
 - `v2.2.0` support nerdfont icons
 - `v2.1.0` split up cpu into cpu & cores
 - `v2.0.1` improve spotify and other monitors
