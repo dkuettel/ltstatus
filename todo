@@ -83,7 +83,64 @@ o see now if colors work? they could also be easy to indicate on/off
     - it's okay, nicer but dont overuse it
     - how to handle it, global icon switch probably not a good idea
     - just leave all in users control? he can model it in his own config.py?
-
+o from https://www.utf8icons.com/subsets
+    - https://www.utf8icons.com/subsets/spacing-modifier-letters
+        - ˥˦˧˨˩˪˫ˬ˯ˮ˭ː˄˂
+    - https://www.utf8icons.com/subsets/combining-diacritical-marks
+        - very interesting, they combine
+    - https://www.utf8icons.com/subsets/arabic
+        - ؉ ؊
+    - https://www.utf8icons.com/subsets/unified-canadian-aboriginal-syllabics/400
+    - https://www.utf8icons.com/subsets/ogham
+        -   ᚁ ᚂ ᚃ  ᚄ  ᚅ  done
+        -   ᚆ ᚇ ᚈ  ᚉ  ᚊ  done
+        -   ᚋ ᚌ ᚍ  ᚎ  ᚏ  done
+        -   ᚛ᚐ᚜ ᚑ᚜ ᚒ ᚜ ᚓ ᚜ ᚔ  ᚜done
+        - ᚛ᚌ᚜
+    - https://www.utf8icons.com/subsets/ogham
+        - •․‥ … ‰ ‱    ‵‶‷ ⁘ ‧⁝⁞
+    - https://www.utf8icons.com/subsets/superscripts-and-subscripts
+        - ⁴ and ₄ and co
+    - https://www.utf8icons.com/subsets/combiling-diacritical-marks-for-symbols
+        - with superpostion, can have gpu and overpoint or underpoint?
+        - a⃛ a⃜ a⃡
+    - https://www.utf8icons.com/subsets/arrows
+    - https://www.utf8icons.com/subsets/mathematical-operators
+        - ≃ ≅ ≊ ≋ ≡ ≣ ⊦⊧⊨ ⊩ ⊪ ⊫ ⋮ ⋯ ⋰ ⋱
+    - https://www.utf8icons.com/subsets/miscellaneous-technical
+        - ⌈⌊⌛⎣a ⎺ ⎻⎼⎽
+    - https://www.utf8icons.com/subsets/box-drawing
+    - https://www.utf8icons.com/subsets/block-elements
+    - https://www.utf8icons.com/subsets/geometric-shapes
+        - ◔ ◑ ◕ ◵
+    - https://www.utf8icons.com/subsets/miscellaneous-symbols
+        - ☰ ☱ ☲ ...
+        - ⚊ ⚌ ☰
+        - ⚀ ⚁ ⚂ ⚃ ⚄ ⚅
+    - https://www.utf8icons.com/subsets/braille-patterns
+        - ⣸ ⣹ ⣺ ⣻ ⣼ ⣽ ⣾ ⣿ ...
+        - combine with the this-high
+                ꜈⣼ more
+        - or use 4 left dots and 4 right dots independently
+    - https://www.utf8icons.com/subsets/supplemental-arrows-a
+        - ⟰
+    - https://www.utf8icons.com/subsets/miscellaneous-symbols-and-arrows/200
+        - ⯒ there was also in another arrows thing one with just 2
+    - https://www.utf8icons.com/subsets/modifier-tone-letters
+        - ꜒꜓꜔꜕꜖ ꜈꜉꜊꜋꜌ ꜍꜎꜏꜐꜑
+        - cpu꜉꜑gpu
+        - they are also left-right inverted? have it in the middle cpu || gpu?
+    - https://www.utf8icons.com/subsets/musical-symbols
+        - 𝄖 𝄗 𝄘 𝄙 𝄚 𝄛 done
+    - https://www.utf8icons.com/subsets/tai-xuan-jing-symbols
+        - 𝌆 𝌡 𝌼 𝌪 and more, but not all possibilities
+        - there was another one very similar, can we get full combo?
+    - https://www.utf8icons.com/subsets/mathematical-alphanumeric-symbols
+    - https://www.utf8icons.com/subsets/domino-tiles
+        - left and right gpu vs cpu or something?
+        - 🀰 🀱 🀲 🀳 🀴 🀵 🀶 🀷 🀸 🀹 🀺 🀻 🀼 🀽 🀾 🀿 🁀 🁁 🁂 🁃 🁄 🁅 🁆 🁇 🁈 🁉 🁊 🁋 🁌 🁍 🁎 🁏 🁐 🁑 🁒 🁓 🁔 🁕 🁖 🁗 🁘 🁙 🁚 🁛 🁜 🁝 🁞 🁟 🁠 🁡
+        - 🁢 🁣 🁤 🁥 🁦 🁧 🁨 🁩 🁪 🁫 🁬 🁭 🁮 🁯 🁰 🁱 🁲 🁳 🁴 🁵 🁶 🁷 🁸 🁹 🁺 🁻 🁼 🁽 🁾 🁿 🂀 🂁 🂂 🂃 🂄 🂅 🂆 🂇 🂈 🂉 🂊 🂋 🂌 🂍 🂎 🂏 🂐 🂑 🂒 🂓
+                                              cpu🁂  gpu
 
 general:
 o still would like to switch top new python
