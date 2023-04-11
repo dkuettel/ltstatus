@@ -18,7 +18,7 @@ class Monitor(RealtimeMonitor):
     def with_icons(self) -> Monitor:
         self.waiting = ""
         self.on = ""
-        self.off = ""
+        self.off = ""
         self.error = ""
         return self
 
