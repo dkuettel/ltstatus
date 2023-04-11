@@ -12,6 +12,13 @@ bin_themes = {
     "ascii-arrows": ("---", ">--", ">>-", ">>>"),
     "LMH": tuple(".LMH"),
     "lmh": tuple(".lmh"),
+    "this-high": tuple("꜖꜕꜔꜓꜒"),
+    "this-high-dot-left": tuple("꜌꜋꜊꜉꜈"),
+    "this-high-dot-right": tuple("꜑꜐꜏꜎꜍"),
+    # TODO is missing a single line with no count
+    "counts": ("ᚋ  ", "ᚌ  ", "ᚍ  ", "ᚎ  ", "ᚏ  "),
+    "dot-grid": tuple(" ⠄⠤⠦⠶⠷⠿⡿⣿"),
+    "dots": tuple(" ⡀⡄⡆⡇"),
     # from nerdfonts https://www.nerdfonts.com/
     "dice": tuple(""),
     "battery": tuple(""),
