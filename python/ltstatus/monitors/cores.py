@@ -16,10 +16,10 @@ class Monitor(PollingMonitor):
     counters: Optional[list[str]] = None
 
     def with_icons(self) -> Monitor:
-        self.prefix = ""
+        self.prefix = "󰍛"
         self.waiting = ""
-        # NOTE there is also  and 
-        self.counters = list("")
+        # NOTE there is also 󰎡 and 
+        self.counters = list("󰎤󰎧󰎪󰎭󰎱󰎳󰎶󰎹󰎼󰎿")
         return self
 
     def updates(self) -> Iterator[str]:

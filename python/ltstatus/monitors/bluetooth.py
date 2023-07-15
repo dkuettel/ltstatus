@@ -16,10 +16,10 @@ class Monitor(RealtimeMonitor):
     error: str = "bt?!"
 
     def with_icons(self) -> Monitor:
-        self.waiting = ""
+        self.waiting = "󰂲"
         self.on = ""
-        self.off = ""
-        self.error = ""
+        self.off = "󰂲"
+        self.error = "󰂲"
         return self
 
     # TODO dbus notifications could be another solution

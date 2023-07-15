@@ -57,7 +57,7 @@ def format_period_icons(state: RedshiftState) -> str:
     if state.status == None or state.period == None:
         return ""
     if not state.status:
-        return "ﯦ"
+        return "󰛨"
     if state.period == 1.0:
         return ""
     if state.period == 0.0:

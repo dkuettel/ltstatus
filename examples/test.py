@@ -9,8 +9,8 @@ icons = True
 
 if icons:
     sound_aliases = {
-        "iFi (by AMR) HD USB Audio Pro": "ﰝ",
-        "apm.zero": "",
+        "iFi (by AMR) HD USB Audio Pro": "󰜟",
+        "apm.zero": "󰋋",
         "Dummy Output": "",
     }
 else:

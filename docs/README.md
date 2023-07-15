@@ -167,6 +167,7 @@ The current `v2.x.x` public interface has breaking changes with respect to `v1.x
 # releases
 
 releases:
+- `v2.2.2` fix for new nerdfonts v3.0.0
 - `v2.2.1` improve dropbox, sound, and some nerdfont icons
 - `v2.2.0` support nerdfont icons
 - `v2.1.0` split up cpu into cpu & cores

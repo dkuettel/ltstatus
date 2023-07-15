@@ -22,7 +22,7 @@ def format_plain(description: str, mute: bool, volume: int) -> str:
 
 
 def format_icons(description: str, mute: bool, volume: int) -> str:
-    speaker = "ﱝ" if mute else ""
+    speaker = "󰝟" if mute else ""
     return f"{description} {speaker} {volume}%"
 
 

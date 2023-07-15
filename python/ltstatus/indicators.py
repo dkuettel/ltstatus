@@ -20,9 +20,9 @@ bin_themes = {
     "dot-grid": tuple(" ⠄⠤⠦⠶⠷⠿⡿⣿"),
     "dots": tuple(" ⡀⡄⡆⡇"),
     # from nerdfonts https://www.nerdfonts.com/
-    "dice": tuple(""),
-    "battery": tuple(""),
-    "battery!": tuple(""),
+    "dice": tuple("󰇊󰇋󰇌󰇍󰇎󰇏"),
+    "battery": tuple("󰂎󰁺󰁻󰁼󰁽󰁾󰁿󰂀󰂁󰂂󰁹"),
+    "battery!": tuple("󰂎󰁺󰁻󰁼󰁽󰁾󰁿󰂀󰂁󰂂󰂃"),
     "thermometer": tuple(""),
     "moon-right": tuple(""),
     "moon-left": tuple(""),
