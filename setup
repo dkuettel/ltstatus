@@ -1,22 +1,11 @@
 #!/bin/zsh
 set -eux -o pipefail
 
-base=${0:a:h}
-cd $base
+which python3.12 virtualenv
 
-venv=$base/.venv
+cd ${0:a:h}
 
-if [[ ! -d $venv ]]; then
+virtualenv --python=python3.12 .venv
 
-    if ! which python3.9 virtualenv; then
-        sudo apt-get install -y python3.9 python3-env
-    fi
-
-    virtualenv --python python3.9 $venv
-fi
-
-export VIRTUAL_ENV=$venv
-path=($venv/bin $path)
-
-pip install --upgrade pip pip-tools
-pip-sync
+.venv/bin/pip install --upgrade pip pip-tools
+.venv/bin/pip-sync
