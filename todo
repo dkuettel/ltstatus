@@ -1,4 +1,8 @@
 
+more:
+- move to ruff and pyright, add linter in bin or so
+    - remove pylint and ipython from prod dependency?
+
 bug:
 x dropbox can have more than 2 or 3 lines, but I think only the first one matters for us
     - also with ignored folders, it's only saying
