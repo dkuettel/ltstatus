@@ -1,0 +1,19 @@
+[project]
+name = "ltstatus"
+version = "2.3.0"
+description = "low-tec status"
+readme = "docs/README.md"
+authors = [{ name = "Daniel Kuettel", email = "dkuettel@gmail.com" }]
+requires-python = ">=3.13"
+dependencies = [
+    "jeepney>=0.8.0",          # for DBus
+    "nvidia-ml-py>=12.560.30", # for nvidia gpus
+    "psutil>=6.1.1",           # for basic system information
+]
+
+[project.scripts]
+ltstatus = "ltstatus:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

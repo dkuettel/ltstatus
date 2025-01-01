@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterator
 
+import pynvml
 from pynvml import (
     nvmlDeviceGetHandleByIndex,
     nvmlDeviceGetMemoryInfo,
