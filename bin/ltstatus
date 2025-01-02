@@ -1,11 +1,11 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 set -eu -o pipefail
+
+uv run --project ${0:A:h:h} $@
 
 # > ltstatus lt-config.py
 # or using '#!/usr/bin/env ltstatus' as bang on an executable python script
-#
-# will activate the ltstatus virtual env
-# and then run the script
+# will run the configuration in the ltstatus environment
 # with all remaining options fowarded
 #
 # note:
@@ -13,10 +13,3 @@ set -eu -o pipefail
 # typically your status configuration is just a simple script, no additional
 # but if you want, it can take additional arguments to be configurable
 # it's up to your own code to parse that
-
-base=${0:A:h}/..
-base=${base:a}
-
-export path=($base/.venv/bin $path)
-export PYTHONPATH=$base/python
-python $@

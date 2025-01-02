@@ -1,5 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 set -eu -o pipefail
 
-base=${0:A:h}
-$base/bin/ltstatus $base/examples/test.py
+${0:a:h}/bin/ltstatus ${0:a:h}/examples/test.py
