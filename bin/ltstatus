@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 set -eu -o pipefail
 
-uv run --project ${0:A:h:h} $@
+uv run --project ${0:A:h:h} python $@
 
 # > ltstatus lt-config.py
 # or using '#!/usr/bin/env ltstatus' as bang on an executable python script

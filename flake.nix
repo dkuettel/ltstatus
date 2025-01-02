@@ -13,7 +13,7 @@
       packages.x86_64-linux.default = pkgs.writeScriptBin "ltstatus" ''
         #!${pkgs.zsh}/bin/zsh
         set -eu -o pipefail
-        ${pkgs.uv}/bin/uv run --project ${self} --isolated --quiet $@
+        ${pkgs.uv}/bin/uv run --project ${self} --isolated --quiet python $@
       '';
     };
 }
