@@ -39,15 +39,8 @@ class Monitor(PollingMonitor):
 
     def connected_updates(self) -> Iterator[str]:
         try:
-            try:
-                # https://docs.nvidia.com/deploy/nvml-api/index.html
-                nvmlInit()
-            except pynvml.NVMLError_LibraryNotFound:
-                # try again assuming it's nixos
-                # see https://github.com/NixOS/nixpkgs/blob/nixos-24.11/pkgs/development/python-modules/pynvml/0001-locate-libnvidia-ml.so.1-on-NixOS.patch
-                assert pynvml.nvmlLib is None
-                pynvml.nvmlLib = pynvml.CDLL("/run/opengl-driver/lib/libnvidia-ml.so.1")
-                nvmlInit()
+            # https://docs.nvidia.com/deploy/nvml-api/index.html
+            nvmlInit()
 
             handle = nvmlDeviceGetHandleByIndex(0)
 

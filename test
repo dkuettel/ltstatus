@@ -1,4 +1,4 @@
 #!/usr/bin/env zsh
 set -eu -o pipefail
 
-${0:a:h}/bin/ltstatus ${0:a:h}/examples/test.py
+nix run ${0:a:h} -- ${0:a:h}/examples/test.py

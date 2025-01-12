@@ -9,16 +9,21 @@
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
     in
-    {
+    rec {
       packages.x86_64-linux.default = pkgs.buildEnv {
         name = "ltstatus-env";
         # TODO in theory should set env here so that uv never tries do manage a python version
         paths = with pkgs; [ uv python313 ];
       };
+      # TODO setting ld library path can have downsides apparently (doing it here for libnvidia-ml.so)
       packages.x86_64-linux.app = pkgs.writeScriptBin "ltstatus" ''
         #!${pkgs.zsh}/bin/zsh
         set -eu -o pipefail
-        ${pkgs.uv}/bin/uv run --python=${pkgs.python313}/bin/python --no-python-downloads --project ${self} --isolated --quiet python $@
+        LD_LIBRARY_PATH=/run/opengl-driver/lib ${pkgs.uv}/bin/uv run --python=${pkgs.python313}/bin/python --no-python-downloads --project ${self} --isolated --quiet python $@
       '';
+      apps.x86_64-linux.default = {
+        type = "app";
+        program = "${packages.x86_64-linux.app}/bin/ltstatus";
+      };
     };
 }
