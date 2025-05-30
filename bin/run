@@ -1,0 +1,4 @@
+#!/usr/bin/env zsh
+set -eux -o pipefail
+
+uv run --project ${0:a:h:h} python -m ltstatus $@
