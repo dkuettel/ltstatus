@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 
 from ltstatus import RealtimeContext, RealtimeMonitor
@@ -20,3 +21,11 @@ class Monitor(RealtimeMonitor):
             context.send(time.strftime(self.format, t))
             t = time.localtime()
             context.sleep(60 - t.tm_sec + 1)
+
+
+@contextmanager
+def monitor_datetime():
+    def fn() -> str:
+        return time.strftime(r"%Y-%m-%d %a %H:%M", time.localtime())
+
+    yield fn

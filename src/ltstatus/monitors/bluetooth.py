@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from subprocess import CalledProcessError
 
@@ -26,7 +27,6 @@ class Monitor(RealtimeMonitor):
     # TODO could think about sending "" when there is not bluetooth hardware (and exit the thread?)
 
     def run(self, context: RealtimeContext):
-
         context.send(self.get_state())
 
         # TODO overall, in many places with threads, if they fail we are just stuck with the last update
@@ -47,7 +47,6 @@ class Monitor(RealtimeMonitor):
                     context.send(self.get_state())
 
     def get_state(self) -> str:
-
         try:
             enabled = "Powered: yes" in run_cmd("bluetoothctl show")
             if enabled:
@@ -66,3 +65,29 @@ class Monitor(RealtimeMonitor):
 
         except CalledProcessError:
             return self.error
+
+
+@contextmanager
+def monitor_bluetooth():
+    # TODO maybe cache a bit more and dont do it every one second?
+    def fn() -> str:
+        try:
+            enabled = "Powered: yes" in run_cmd("bluetoothctl show")
+            if enabled:
+                devices = [
+                    entry.split(" ")[1]
+                    for entry in run_cmd("bluetoothctl devices").split("\n")[:-1]
+                    # output: lines of "Device XX:XX:XX:XX:XX:XX some device name", with a trailing empty line
+                ]
+                connected = sum(
+                    "Connected: yes" in run_cmd(f"bluetoothctl info {device}")
+                    for device in devices
+                )
+                return f"bt@{connected}"
+            else:
+                return "bt@off"
+
+        except CalledProcessError:
+            return "bt@err"
+
+    yield fn

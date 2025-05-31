@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable
 
@@ -37,7 +38,6 @@ class Monitor(RealtimeMonitor):
         return self
 
     def run(self, context: RealtimeContext):
-
         context.send(self.get_state())
 
         with TailCommand(args=["pactl", "subscribe"], stop=StopBySigInt()) as log:
@@ -83,3 +83,44 @@ class Monitor(RealtimeMonitor):
         description = self.aliases.get(description, description)
 
         return self.format(description, mute, volume)
+
+
+@contextmanager
+def monitor_sound(aliases: dict[str, str] | None = None):
+    if aliases is None:
+        aliases = dict()
+
+    def fn() -> str:
+        """
+        we use only 'pactl', and not 'pacmd'
+        for people that use PipeWire to replace pulseaudio
+        'pactl' still works, but 'pacmd' doesnt
+        """
+
+        # NOTE we dont react kindly to anything that we cant parse
+
+        default_sink = re_default_sink.search(run_cmd("pactl info"))["value"]
+
+        sinks = run_cmd("pactl list sinks")
+
+        for name in re_name.finditer(sinks):
+            if name["value"] == default_sink:
+                break
+        name, pos = name["value"], name.end()
+
+        description = re_description.search(sinks, pos)
+        description, pos = description["value"], description.end()
+
+        mute = re_mute.search(sinks, pos)
+        mute, pos = mute["value"] == "yes", mute.end()
+
+        volume = re_volume.search(sinks, pos)
+        volume, pos = int(volume["value"]), volume.end()
+
+        description = aliases.get(description, description)
+
+        if mute:
+            return f"{description}@mute"
+        return f"{description}@{volume}%"
+
+    yield fn
