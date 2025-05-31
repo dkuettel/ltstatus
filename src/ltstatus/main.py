@@ -103,7 +103,7 @@ def app_dwm(test: bool = False):
                     args=[
                         "xsetroot",
                         "-name",
-                        " | ".join(segments),
+                        " " + " | ".join(segments) + " ",
                     ],
                     check=True,
                 )
