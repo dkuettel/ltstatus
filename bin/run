@@ -1,4 +1,4 @@
 #!/usr/bin/env zsh
 set -eux -o pipefail
 
-uv run --project ${0:a:h:h} python ${0:a:h:h}/examples/dwm-status.py
+uv run --project ${0:a:h:h} python -Pm ltstatus.main $@

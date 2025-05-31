@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from contextlib import contextmanager
+from typing import assert_never
 
 from ltstatus.monitors.bluetooth import run_cmd
 
@@ -12,16 +13,6 @@ re_name = re.compile(r"^\tName: (?P<value>.+)$", re.MULTILINE)
 re_description = re.compile(r"^\tDescription: (?P<value>.+)$", re.MULTILINE)
 re_mute = re.compile(r"\tMute: (?P<value>.+)$", re.MULTILINE)
 re_volume = re.compile(r"\tVolume: .* (?P<value>\d+)% .*$", re.MULTILINE)
-
-
-def format_plain(description: str, mute: bool, volume: int) -> str:
-    sign = "#" if mute else "="
-    return f"{description}{sign}{volume}%"
-
-
-def format_icons(description: str, mute: bool, volume: int) -> str:
-    speaker = "󰝟" if mute else ""
-    return f"{description} {speaker} {volume}%"
 
 
 @contextmanager
@@ -38,23 +29,46 @@ def monitor(aliases: dict[str, str] | None = None):
 
         # NOTE we dont react kindly to anything that we cant parse
 
-        default_sink = re_default_sink.search(run_cmd(["pactl", "info"]))["value"]
+        match re_default_sink.search(run_cmd(["pactl", "info"])):
+            case re.Match() as m:
+                default_sink = m["value"]
+            case None:
+                return "sound unknown1"
+            case _ as never:
+                assert_never(never)
 
         sinks = run_cmd(["pactl", "list", "sinks"])
 
         for name in re_name.finditer(sinks):
             if name["value"] == default_sink:
+                name, pos = name["value"], name.end()
                 break
-        name, pos = name["value"], name.end()
+        else:
+            return "sound unknown2"
 
-        description = re_description.search(sinks, pos)
-        description, pos = description["value"], description.end()
+        match re_description.search(sinks, pos):
+            case re.Match() as m:
+                description, pos = m["value"], m.end()
+            case None:
+                return "sound unknown3"
+            case _ as never:
+                assert_never(never)
 
-        mute = re_mute.search(sinks, pos)
-        mute, pos = mute["value"] == "yes", mute.end()
+        match re_mute.search(sinks, pos):
+            case re.Match() as m:
+                mute, pos = m["value"] == "yes", m.end()
+            case None:
+                return "sound unknown4"
+            case _ as never:
+                assert_never(never)
 
-        volume = re_volume.search(sinks, pos)
-        volume, pos = int(volume["value"]), volume.end()
+        match re_volume.search(sinks, pos):
+            case re.Match() as m:
+                volume, pos = int(m["value"]), m.end()
+            case None:
+                return "sound unknown5"
+            case _ as never:
+                assert_never(never)
 
         description = aliases.get(description, description)
 
