@@ -31,10 +31,13 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
       prod-dependencies = with pkgs; [ ];
+      # TODO nvidia lib is not available like that, but also not in the nix built version
+      # so we would have to patch up the lib for that?
+      # I think setting it with ld_lib_path is not very good
       nix-uv = pkgs.writeScriptBin "uv" ''
         #!${pkgs.zsh}/bin/zsh
         set -eu -o pipefail
-        UV_PYTHON=${pkgs.python313}/bin/python ${pkgs.uv}/bin/uv --no-python-downloads $@
+        LD_LIBRARY_PATH=/run/opengl-driver/lib UV_PYTHON=${pkgs.python313}/bin/python ${pkgs.uv}/bin/uv --no-python-downloads $@
       '';
       dev = pkgs.buildEnv {
         name = "dev";

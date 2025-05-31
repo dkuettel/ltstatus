@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator, Optional, Union
 
 from ltstatus import formats, outputs
 from ltstatus.core import (
@@ -96,13 +96,16 @@ class PollingThread(UpdateThread):
 
 
 def run(
-    monitors: list[Union[RealtimeMonitor, PollingMonitor]],
+    monitors: list[RealtimeMonitor | PollingMonitor],
     polling_interval: float = 1.0,
-    format: Optional[Format] = None,
-    output: Optional[Output] = None,
+    format: Format | None = None,
+    output: Output | None = None,
 ):
-    format = format or formats.plain()
-    output = output or outputs.stdout()
+    if format is None:
+        format = formats.plain()
+
+    if output is None:
+        output = outputs.stdout()
 
     # TODO still not super happy about the need for names for identifying
     # people can mess it up. for meta info and debug it's fine, but not for ordering and state keys
