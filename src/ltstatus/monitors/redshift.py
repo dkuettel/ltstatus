@@ -155,7 +155,7 @@ class BrightnessParser(Parser):
 
 
 @contextmanager
-def monitor_redshift():
+def monitor():
     log_file = Path("~/.log-redshift").expanduser()
 
     re_status = re.compile(r".*Status: (?P<status>Enabled|Disabled)")

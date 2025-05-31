@@ -1,11 +1,6 @@
 import time
 
-from ltstatus.monitors.bluetooth import monitor_bluetooth
-from ltstatus.monitors.cpu import monitor_cpu
-from ltstatus.monitors.datetime import monitor_datetime
-from ltstatus.monitors.nvidia import monitor_nvidia
-from ltstatus.monitors.redshift import monitor_redshift
-from ltstatus.monitors.sound import monitor_sound
+import ltstatus.monitor as m
 
 sound_aliases = {
     "iFi (by AMR) HD USB Audio Pro": "ifi",
@@ -13,13 +8,19 @@ sound_aliases = {
     "Dummy Output": "none",
 }
 
+# TODO add here what pid stats does? up to custom to pass arguments, use dev as with other stuff for editing?
+# still need ltstatus to make it importable? or just put all things i want in ltstatus directly?
+# TODO actually, ltstatus here looks like its not using much cpu, but pid stats seems quite heavy after all
+# or just make it on demand, if i see overall usage is heavy
+# or have a tmux popup to give me a nice ncdu like thing snapshot when i need to see it?
+
 with (
-    monitor_cpu() as cpu,
-    monitor_nvidia() as nvidia,
-    monitor_bluetooth() as bluetooth,
-    monitor_sound(sound_aliases) as sound,
-    monitor_redshift() as redshift,
-    monitor_datetime() as datetime,
+    m.cpu() as cpu,
+    m.nvidia() as nvidia,
+    m.bluetooth() as bluetooth,
+    m.sound(sound_aliases) as sound,
+    m.redshift() as redshift,
+    m.datetime() as datetime,
 ):
     while True:
         time.sleep(1)

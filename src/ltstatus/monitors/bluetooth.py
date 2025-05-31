@@ -68,7 +68,7 @@ class Monitor(RealtimeMonitor):
 
 
 @contextmanager
-def monitor_bluetooth():
+def monitor():
     # TODO maybe cache a bit more and dont do it every one second?
     def fn() -> str:
         try:

@@ -86,7 +86,7 @@ class Monitor(RealtimeMonitor):
 
 
 @contextmanager
-def monitor_sound(aliases: dict[str, str] | None = None):
+def monitor(aliases: dict[str, str] | None = None):
     if aliases is None:
         aliases = dict()
 

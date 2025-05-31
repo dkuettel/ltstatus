@@ -52,7 +52,7 @@ def ratio(v: float) -> str:
 
 
 @contextmanager
-def monitor_cpu():
+def monitor():
     times: object | None = None
 
     def fn() -> str:

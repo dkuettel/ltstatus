@@ -63,7 +63,7 @@ class Monitor(PollingMonitor):
 
 
 @contextmanager
-def monitor_nvidia():
+def monitor():
     # https://docs.nvidia.com/deploy/nvml-api/index.html
     nvmlInit()
 

@@ -24,7 +24,7 @@ class Monitor(RealtimeMonitor):
 
 
 @contextmanager
-def monitor_datetime():
+def monitor():
     def fn() -> str:
         return time.strftime(r"%Y-%m-%d %a %H:%M", time.localtime())
 
