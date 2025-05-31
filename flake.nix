@@ -78,7 +78,7 @@
       app = pkgs.writeScriptBin "ltstatus" ''
         #!${pkgs.zsh}/bin/zsh
         set -eu -o pipefail
-        path=(${env}/bin $path) python -m osh $@
+        path=(${env}/bin $path) python -Pm ltstatus $@
       '';
     in
     {
