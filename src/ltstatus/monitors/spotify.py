@@ -1,49 +1,16 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 from jeepney import DBusAddress, MatchRule, MessageType, Properties, message_bus
 from jeepney.io.blocking import open_dbus_connection
 
-from ltstatus import RealtimeContext, RealtimeMonitor
 
-
-def format_plain(state: Optional[SpotifyState]) -> str:
+def format_plain(state: None | SpotifyState) -> str:
     if state is None:
         return ""
     return f"{state.artist} {'-' if state.playing else '#'} {state.title}"
-
-
-def format_icons(state: Optional[SpotifyState]) -> str:
-    if state is None:
-        return ""
-    return f" {state.artist} {'' if state.playing else ''} {state.title}"
-
-
-@dataclass
-class Monitor(RealtimeMonitor):
-    name: str = "spotify"
-    format: Callable = format_plain
-
-    def with_icons(self) -> Monitor:
-        self.format = format_icons
-        return self
-
-    def run(self, context: RealtimeContext):
-        while not context.should_exit():
-            try:
-                self.run_connected(context)
-            except Exception:
-                # TODO I dont know exactly how it fails when dbus is unavailable
-                context.send("dbus!")
-
-    def run_connected(self, context: RealtimeContext):
-        with SpotifyBus() as bus:
-            context.send(self.format(bus.get_state()))
-            while not context.should_exit():
-                if bus.wait_for_chatter(timeout=1):
-                    context.send(self.format(bus.get_state()))
 
 
 @dataclass
@@ -78,7 +45,7 @@ class SpotifyBus:
         del self.con
         return False
 
-    def wait_for_chatter(self, timeout: Optional[float] = None) -> bool:
+    def wait_for_chatter(self, timeout: None | float = None) -> bool:
         try:
             self.con.receive(timeout=timeout)
             return True
@@ -86,8 +53,7 @@ class SpotifyBus:
             # jeepney.io.threading.ReceiveStopped can also happen
             return False
 
-    def get_state(self) -> Optional[SpotifyState]:
-
+    def get_state(self) -> None | SpotifyState:
         properties = Properties(
             obj=DBusAddress(
                 "/org/mpris/MediaPlayer2",
@@ -109,3 +75,13 @@ class SpotifyBus:
             artist=",".join(metadata.body[0][1]["xesam:artist"][1]) or "?",
             title=metadata.body[0][1]["xesam:title"][1] or "?",
         )
+
+
+@contextmanager
+def monitor():
+    with SpotifyBus() as bus:
+
+        def fn() -> str:
+            return format_plain(bus.get_state())
+
+        yield fn

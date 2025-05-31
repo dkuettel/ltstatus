@@ -1,39 +1,33 @@
-#!/usr/bin/env ltstatus
+import re
+import time
+from subprocess import run
 
-from ltstatus import formats, monitors as m, outputs, run
+import ltstatus.monitor as m
 
-# switch this off if you dont have nerdfont or something compatible
-# (see https://www.nerdfonts.com/)
-icons = True
+sound_aliases = {
+    "iFi (by AMR) HD USB Audio Pro": "ifi",
+    "apm.zero": "apm",
+    "Dummy Output": "none",
+}
 
-if icons:
-    sound_aliases = {
-        "iFi (by AMR) HD USB Audio Pro": "󰜟",
-        "apm.zero": "󰋋",
-        "Dummy Output": "",
-    }
-else:
-    sound_aliases = {
-        "iFi (by AMR) HD USB Audio Pro": "ifi",
-        "apm.zero": "apm",
-        "Dummy Output": "x",
-    }
-
-monitors = [
-    m.Spotify(),
-    m.ProcessAlerts(flags={"steam": r".*steam.*"}),
-    m.Redshift(),
-    m.Bluetooth(),
-    m.Sound(aliases=sound_aliases),
-    m.Datetime(),
-]
-
-if icons:
-    monitors = [m.with_icons() for m in monitors]
-
-run(
-    monitors=monitors,
-    polling_interval=3,
-    format=formats.dwm(),
-    output=outputs.dwm(),
-)
+with (
+    m.spotify() as spotify,
+    m.process_alerts(flags={"steam": re.compile(r".*steam.*")}) as alerts,
+    m.redshift() as redshift,
+    m.bluetooth() as bluetooth,
+    m.sound(sound_aliases) as sound,
+    m.datetime() as datetime,
+):
+    while True:
+        time.sleep(1)
+        segments = [spotify(), alerts(), redshift(), bluetooth(), sound(), datetime()]
+        segments = [s for s in segments if s != ""]
+        run(
+            args=[
+                "xsetroot",
+                "-name",
+                " | ".join(segments),
+            ],
+            check=True,
+        )
+        # print(" | ".join(segments), flush=True)

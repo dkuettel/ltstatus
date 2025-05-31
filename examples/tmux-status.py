@@ -1,33 +1,26 @@
-#!/usr/bin/env ltstatus
+import time
 from pathlib import Path
 
-from ltstatus import formats, monitors as m, outputs, run
+import ltstatus.monitor as m
 
-# switch this off if you dont have nerdfont or something compatible
-# (see https://www.nerdfonts.com/)
-icons = True
+limits_gb = {
+    Path("/var/lib/docker"): 2.0,
+    Path("/"): 10.0,
+    Path("~"): 5.0,
+}
 
-monitors = [
-    m.DiskspaceAlerts(
-        limits={
-            Path("/var/lib/docker"): 2.0,
-            Path("/"): 10.0,
-            Path("~"): 5.0,
-        },
-    ),
-    m.Dropbox(ignored_patterns=[r"\w+\.osh"]),
-    m.Cores(),
-    m.Cpu(),
-    m.Nvidia(),
-]
-
-if icons:
-    monitors = [m.with_icons() for m in monitors]
-
-run(
-    monitors=monitors,
-    # NOTE tmux as of around version 3.3 does not update more often than once a second
-    polling_interval=1,
-    format=formats.tmux_with_icons() if icons else formats.tmux(),
-    output=outputs.stdout(),
-)
+with (
+    m.diskspace_alerts(limits_gb) as alerts,
+    m.cpu() as cpu,
+    m.nvidia() as nvidia,
+):
+    while True:
+        time.sleep(1)
+        match alerts():
+            case "":
+                print(
+                    f"cpu({cpu()}) gpu({nvidia()})",
+                    flush=True,
+                )
+            case _ as a:
+                print(a, flush=True)
