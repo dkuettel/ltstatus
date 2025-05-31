@@ -197,9 +197,9 @@ def monitor_redshift():
             if day == 0.0:
                 return "night"
             if day >= 0.5:
-                return f"day@{day:%}"
+                return f"day@{day:.0%}"
             if day < 0.5:
-                return f"night@{1-day:%}"
+                return f"night@{1-day:.0%}"
             assert False, day
 
         return "light"
