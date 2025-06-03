@@ -58,6 +58,9 @@
         pyprof2calltree = prev.pprofile.overrideAttrs (old:
           { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; }); }
         );
+        inotify = prev.inotify.overrideAttrs (old:
+          { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; }); }
+        );
       };
       pythonSet =
         (pkgs.callPackage pyproject-nix.build.packages {

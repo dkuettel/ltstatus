@@ -23,6 +23,15 @@ wheels = [
 ]
 
 [[package]]
+name = "inotify"
+version = "0.2.10"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nose" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/35/cb/6d564f8a3f25d9516298dce151670d01e43a4b3b769c1c15f40453179cd5/inotify-0.2.10.tar.gz", hash = "sha256:974a623a338482b62e16d4eb705fb863ed33ec178680fc3e96ccdf0df6c02a07", size = 9905 }
+
+[[package]]
 name = "jeepney"
 version = "0.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -36,6 +45,7 @@ name = "ltstatus"
 version = "2.3.0"
 source = { editable = "." }
 dependencies = [
+    { name = "inotify" },
     { name = "jeepney" },
     { name = "nvidia-ml-py" },
     { name = "psutil" },
@@ -44,6 +54,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "inotify" },
     { name = "jeepney", specifier = ">=0.8.0" },
     { name = "nvidia-ml-py", specifier = ">=12.560.30" },
     { name = "psutil", specifier = ">=6.1.1" },
@@ -69,6 +80,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d6/54/cfe61301667036ec958cb99bd3efefba235e65cdeb9c84d24a8293ba1d90/mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba", size = 8729 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8", size = 9979 },
+]
+
+[[package]]
+name = "nose"
+version = "1.3.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/58/a5/0dc93c3ec33f4e281849523a5a913fa1eea9a3068acfa754d44d88107a44/nose-1.3.7.tar.gz", hash = "sha256:f1bffef9cbc82628f6e7d7b40d7e255aefaa1adb6a1b1d26c69a8b79e6208a98", size = 280488 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/15/d8/dd071918c040f50fa1cf80da16423af51ff8ce4a0f2399b7bf8de45ac3d9/nose-1.3.7-py3-none-any.whl", hash = "sha256:9ff7c6cc443f8c51994b34a667bbcf45afd6d945be7477b52e97516fd17c53ac", size = 154731 },
 ]
 
 [[package]]
