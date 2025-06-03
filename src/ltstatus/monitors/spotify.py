@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from contextlib import contextmanager
 from dataclasses import dataclass
 
@@ -77,11 +78,27 @@ class SpotifyBus:
         )
 
 
-@contextmanager
-def monitor():
+def trigger_events(event: threading.Event, stop: threading.Event):
     with SpotifyBus() as bus:
+        while not stop.is_set():
+            # TODO is there a way to wait on both channels, stop and chatter? maybe we can inject into chatter when we want to trigger a stop?
+            if bus.wait_for_chatter(1):
+                event.set()
+
+
+@contextmanager
+def monitor(event: threading.Event):
+    with SpotifyBus() as bus:
+        stop = threading.Event()
+
+        thread = threading.Thread(target=trigger_events, args=(event, stop))
+        thread.start()
 
         def fn() -> str:
             return format_plain(bus.get_state())
 
-        yield fn
+        try:
+            yield fn
+        finally:
+            stop.set()
+            thread.join()

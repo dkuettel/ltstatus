@@ -1,5 +1,6 @@
 import re
 import subprocess
+import threading
 import time
 from pathlib import Path
 
@@ -28,11 +29,12 @@ app = typer.Typer(
 
 @app.command("all")
 def app_all():
+    event = threading.Event()
     with (
         m.diskspace_alerts(limits_gb) as alerts,
         m.cpu() as cpu,
         m.nvidia() as nvidia,
-        m.spotify() as spotify,
+        m.spotify(event) as spotify,
         m.process_alerts(flags={"steam": re.compile(r".*steam.*")}) as alerts,
         m.redshift() as redshift,
         m.bluetooth() as bluetooth,
@@ -40,7 +42,8 @@ def app_all():
         m.datetime() as datetime,
     ):
         while True:
-            time.sleep(2)
+            event.wait(2)
+            event.clear()
             segments = [
                 alerts(),
                 cpu(),
@@ -77,8 +80,9 @@ def app_tmux():
 
 @app.command("dwm")
 def app_dwm(test: bool = False):
+    event = threading.Event()
     with (
-        m.spotify() as spotify,
+        m.spotify(event) as spotify,
         m.process_alerts(flags={"steam": re.compile(r".*steam.*")}) as alerts,
         m.redshift() as redshift,
         m.bluetooth() as bluetooth,
@@ -86,7 +90,8 @@ def app_dwm(test: bool = False):
         m.datetime() as datetime,
     ):
         while True:
-            time.sleep(1)
+            event.wait(1)
+            event.clear()
             segments = [
                 spotify(),
                 alerts(),
