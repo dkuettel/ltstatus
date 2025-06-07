@@ -27,7 +27,7 @@ def monitor():
                 )
                 return f"bt@{connected}"
             else:
-                return "bt@off"
+                return ""
 
         except CalledProcessError:
             return "bt@err"
