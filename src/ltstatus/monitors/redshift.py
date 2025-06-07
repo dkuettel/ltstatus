@@ -59,14 +59,10 @@ def monitor(event: threading.Event):
 
         if enabled:
             if day == 1.0:
-                return "day"
+                return ""
             if day == 0.0:
                 return "night"
-            if day >= 0.5:
-                return f"day@{day:.0%}"
-            if day < 0.5:
-                return f"night@{1-day:.0%}"
-            assert False, day
+            return f"night@{1-day:.0%}"
 
         return "light"
 
