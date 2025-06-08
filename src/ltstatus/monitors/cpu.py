@@ -18,6 +18,12 @@ def ratio(v: float) -> str:
 
 @contextmanager
 def monitor():
+    # TODO show the most offending process when high cpu or memory?
+    # ah a bit difficult, because we cannot just get the recent one, we would have to wait (cpu)
+
+    # TODO add something separate for tmux, but need to see when tmux restarts the status processes, if we can get pids from inside?
+    # top --batch --iterations=5 --delay=1 -o '+RES' -w
+
     times: object | None = None
 
     def fn() -> str:
