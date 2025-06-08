@@ -70,6 +70,10 @@ def monitor(aliases: dict[str, str] | None = None):
             case _ as never:
                 assert_never(never)
 
+        # show nothing if we are in the happy state
+        if (description in aliases) and (not mute) and (volume == 100):
+            return ""
+
         description = aliases.get(description, description)
 
         if mute:
