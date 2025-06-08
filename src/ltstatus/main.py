@@ -38,7 +38,7 @@ def app_all():
         m.process_alerts(flags={"steam": re.compile(r".*steam.*")}) as alerts,
         m.redshift(event) as redshift,
         m.bluetooth() as bluetooth,
-        m.sound(sound_aliases) as sound,
+        m.sound(event, sound_aliases) as sound,
         m.datetime() as datetime,
     ):
         while True:
@@ -86,7 +86,7 @@ def app_dwm(test: bool = False):
         m.process_alerts(flags={"steam": re.compile(r".*steam.*")}) as alerts,
         m.redshift(event) as redshift,
         m.bluetooth() as bluetooth,
-        m.sound(sound_aliases) as sound,
+        m.sound(event, sound_aliases) as sound,
         m.datetime() as datetime,
     ):
         while True:

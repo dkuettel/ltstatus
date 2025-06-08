@@ -1,24 +1,45 @@
 from __future__ import annotations
 
 import re
+import selectors
+import subprocess
+import threading
 from contextlib import contextmanager
 from typing import assert_never
 
 from ltstatus.monitors.bluetooth import run_cmd
 
-re_sink_event = re.compile(r"Event '.+' on sink #\d+")
 
-re_default_sink = re.compile(r"^Default Sink: (?P<value>.+)$", re.MULTILINE)
-re_name = re.compile(r"^\tName: (?P<value>.+)$", re.MULTILINE)
-re_description = re.compile(r"^\tDescription: (?P<value>.+)$", re.MULTILINE)
-re_mute = re.compile(r"\tMute: (?P<value>.+)$", re.MULTILINE)
-re_volume = re.compile(r"\tVolume: .* (?P<value>\d+)% .*$", re.MULTILINE)
+def trigger_events(event: threading.Event, stop: threading.Event):
+    # TODO we could even cache the last state if there was no change event?
+
+    with (
+        subprocess.Popen(
+            args=["pactl", "subscribe"], stdout=subprocess.PIPE, text=True
+        ) as process,
+        selectors.DefaultSelector() as selector,
+    ):
+        assert process.stdout is not None
+        selector.register(process.stdout, selectors.EVENT_READ, None)
+        while not stop.is_set():
+            if selector.select(1):  # wait
+                while selector.select(0.01):  # read all that is ready
+                    # NOTE the state check in monitor actually causes events too, and that would cause a feedback loop
+                    # it seems sufficient to just look at "change" events
+                    if process.stdout.readline().startswith("Event 'change'"):
+                        event.set()
 
 
 @contextmanager
-def monitor(aliases: dict[str, str] | None = None):
+def monitor(event: threading.Event, aliases: dict[str, str] | None = None):
     if aliases is None:
         aliases = dict()
+
+    re_default_sink = re.compile(r"^Default Sink: (?P<value>.+)$", re.MULTILINE)
+    re_name = re.compile(r"^\tName: (?P<value>.+)$", re.MULTILINE)
+    re_description = re.compile(r"^\tDescription: (?P<value>.+)$", re.MULTILINE)
+    re_mute = re.compile(r"\tMute: (?P<value>.+)$", re.MULTILINE)
+    re_volume = re.compile(r"\tVolume: .* (?P<value>\d+)% .*$", re.MULTILINE)
 
     def fn() -> str:
         """
@@ -80,4 +101,13 @@ def monitor(aliases: dict[str, str] | None = None):
             return f"{description}@mute"
         return f"{description}@{volume}%"
 
-    yield fn
+    stop = threading.Event()
+
+    thread = threading.Thread(target=trigger_events, args=(event, stop))
+    thread.start()
+
+    try:
+        yield fn
+    finally:
+        stop.set()
+        thread.join()

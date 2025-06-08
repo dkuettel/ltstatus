@@ -9,6 +9,9 @@ import inotify.adapters
 
 
 def trigger_events(event: threading.Event, stop: threading.Event, log_file: Path):
+    # TODO selectors can maybe also wait on file descs reading? no inotify? would be better, like a tail
+    # but one danger is if the file is not appended, but replaced
+
     watch = inotify.adapters.Inotify(paths=[str(log_file)], block_duration_s=1)
     while not stop.is_set():
         for _, events, _, _ in watch.event_gen(timeout_s=1, yield_nones=False):  # pyright: ignore[reportGeneralTypeIssues]
