@@ -74,11 +74,11 @@ def app_tmux():
             match alerts():
                 case "":
                     print(
-                        f"{top()} cpu({cpu()}) gpu({nvidia()})",
+                        f"#[fg=red]{top()} #[fg=brightblue]cpu(#[fg=brightcyan]{cpu()}#[fg=brightblue]) #[fg=brightblue]gpu(#[fg=brightcyan]{nvidia()}#[fg=brightblue])",
                         flush=True,
                     )
                 case _ as a:
-                    print(a, flush=True)
+                    print("#[fg=red]" + a, flush=True)
 
 
 @app.command("dwm")
