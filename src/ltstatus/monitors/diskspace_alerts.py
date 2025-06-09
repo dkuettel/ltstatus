@@ -5,19 +5,31 @@ from pathlib import Path
 
 from psutil import disk_usage
 
+from ltstatus.tools import Intervals
+
+
+def is_low(folder: Path, limit_gb: float) -> bool:
+    try:
+        free_gb = disk_usage(str(folder.expanduser())).free / 1e9
+    except FileNotFoundError:
+        return False  # TODO or warn?
+    return free_gb < limit_gb
+
 
 @contextmanager
 def monitor(limits_gb: dict[Path, float]):
+    interval = Intervals.from_seconds(5)
+    low = set[Path]()
+
     def fn() -> str:
-        low = set[Path]()
-        for folder, limit_gb in sorted(limits_gb.items()):
-            try:
-                free_gb = disk_usage(str(folder.expanduser())).free / 1e9
-            except FileNotFoundError:
-                pass  # TODO or warn?
-            else:
-                if free_gb < limit_gb:
-                    low.add(folder)
+        nonlocal interval, low
+
+        if interval():
+            low = {
+                folder
+                for folder, limit_gb in sorted(limits_gb.items())
+                if is_low(folder, limit_gb)
+            }
 
         if len(low) == 0:
             return ""
