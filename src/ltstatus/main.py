@@ -32,6 +32,7 @@ def app_all():
     event = threading.Event()
     with (
         m.diskspace_alerts(limits_gb) as alerts,
+        m.top() as top,
         m.cpu() as cpu,
         m.nvidia() as nvidia,
         m.spotify(event) as spotify,
@@ -46,6 +47,7 @@ def app_all():
             event.clear()
             segments = [
                 alerts(),
+                top(),
                 cpu(),
                 nvidia(),
                 spotify(),
@@ -63,6 +65,7 @@ def app_all():
 def app_tmux():
     with (
         m.diskspace_alerts(limits_gb) as alerts,
+        m.top() as top,
         m.cpu() as cpu,
         m.nvidia() as nvidia,
     ):
@@ -71,7 +74,7 @@ def app_tmux():
             match alerts():
                 case "":
                     print(
-                        f"cpu({cpu()}) gpu({nvidia()})",
+                        f"{top} cpu({cpu()}) gpu({nvidia()})",
                         flush=True,
                     )
                 case _ as a:
