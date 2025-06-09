@@ -4,16 +4,7 @@ from contextlib import contextmanager
 
 import psutil
 
-
-# TODO put this for everyone to use
-def ratio(v: float) -> str:
-    """return a compact ratio with one digit"""
-    i = round(10 * v)
-    if 0 <= i <= 9:
-        return f".{i}"
-    if i == 10:
-        return "1."
-    return f"{v:.1f}"
+from ltstatus.tools import compact_ratio
 
 
 @contextmanager
@@ -44,6 +35,6 @@ def monitor():
 
         times = new_times
 
-        return f"{ratio(memory)}m {cores:.0f}c"
+        return f"{compact_ratio(memory)}m {cores:.0f}c"
 
     yield fn

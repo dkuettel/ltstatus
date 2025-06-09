@@ -10,7 +10,7 @@ from pynvml import (
     nvmlShutdown,
 )
 
-from ltstatus.monitors.cpu import ratio
+from ltstatus.tools import compact_ratio
 
 
 @contextmanager
@@ -25,12 +25,12 @@ def monitor():
             # compute has .gpu, .memory; in percent
             # https://docs.nvidia.com/deploy/nvml-api/group__nvmlDeviceQueries.html#group__nvmlDeviceQueries_1g540824faa6cef45500e0d1dc2f50b321
             compute = nvmlDeviceGetUtilizationRates(handle)
-            c = ratio(compute.gpu / 100)  # pyright: ignore[reportOperatorIssue]
+            c = compact_ratio(compute.gpu / 100)  # pyright: ignore[reportOperatorIssue]
 
             # memory has .free, .total, .used; in bytes
             # https://docs.nvidia.com/deploy/nvml-api/group__nvmlDeviceQueries.html#group__nvmlDeviceQueries_1g2dfeb1db82aa1de91aa6edf941c85ca8
             memory = nvmlDeviceGetMemoryInfo(handle)
-            m = ratio(memory.used / memory.total)  # pyright: ignore[reportUnusedVariable, reportOperatorIssue]
+            m = compact_ratio(memory.used / memory.total)  # pyright: ignore[reportUnusedVariable, reportOperatorIssue]
 
             return f"{m}m {c}c"
 

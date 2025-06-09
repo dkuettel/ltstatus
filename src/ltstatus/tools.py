@@ -4,6 +4,16 @@ import time
 from dataclasses import dataclass
 
 
+def compact_ratio(v: float) -> str:
+    """return a compact ratio with one digit"""
+    i = round(10 * v)
+    if 0 <= i <= 9:
+        return f".{i}"
+    if i == 10:
+        return "1."
+    return f"{v:.1f}"
+
+
 @dataclass
 class Intervals:
     seconds: float
