@@ -13,7 +13,7 @@ def watch(stop: threading.Event, states: mp.Queue[str]):
     long = 5  # seconds
 
     old_times: object | None = None
-    top_cpu: bool = False
+    watching: bool = False
 
     while not stop.is_set():
         new_times: object = psutil.cpu_times()
@@ -30,24 +30,28 @@ def watch(stop: threading.Event, states: mp.Queue[str]):
             / psutil._cpu_tot_time(deltas)  # pyright: ignore[reportAttributeAccessIssue]
         )
 
-        if cores >= 1:
-            if top_cpu:
-                heavy_processes = [
-                    f"{p.name()}@{p.info['cpu_percent']/100:.0f}c"
-                    for p in psutil.process_iter(attrs=["cpu_percent"])
-                    if p.info["cpu_percent"] >= 50
-                ]
-                states.put(",".join(heavy_processes))
+        # TODO trying active for now, available might be better?
+        memory: float = psutil.virtual_memory().active / psutil.virtual_memory().total
+
+        if (cores >= 1) or (memory > 0.7):
+            if watching:
+                heavy_processes = {
+                    f"{p.name()}@{p.info['memory_info'].rss/1e9:.0f}gb{p.info['cpu_percent']/100:.0f}c"
+                    for p in psutil.process_iter(attrs=["cpu_percent", "memory_info"])
+                    if (p.info["cpu_percent"] >= 50)
+                    or (p.info["memory_info"].rss / 1e9 > 2)
+                }
+                states.put(",".join(sorted(heavy_processes)))
                 stop.wait(long)
                 continue
-            top_cpu = True
+            watching = True
             for p in psutil.process_iter():
                 p.cpu_percent()
             states.put("")
             stop.wait(short)
             continue
 
-        top_cpu = False
+        watching = False
         states.put("")
         stop.wait(long)
 
