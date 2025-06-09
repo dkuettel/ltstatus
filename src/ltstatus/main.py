@@ -74,7 +74,7 @@ def app_tmux():
             match alerts():
                 case "":
                     print(
-                        f"{top} cpu({cpu()}) gpu({nvidia()})",
+                        f"{top()} cpu({cpu()}) gpu({nvidia()})",
                         flush=True,
                     )
                 case _ as a:
