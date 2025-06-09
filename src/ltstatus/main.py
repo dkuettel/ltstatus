@@ -64,21 +64,30 @@ def app_all():
 @app.command("tmux")
 def app_tmux():
     with (
-        m.diskspace_alerts(limits_gb) as alerts,
-        m.top() as top,
         m.cpu() as cpu,
         m.nvidia() as nvidia,
     ):
         while True:
             time.sleep(1)
+            print(
+                f"#[fg=brightblue]cpu(#[fg=brightcyan]{cpu()}#[fg=brightblue]) #[fg=brightblue]gpu(#[fg=brightcyan]{nvidia()}#[fg=brightblue])",
+                flush=True,
+            )
+
+
+@app.command("tmux2")
+def app_tmux2():
+    with (
+        m.diskspace_alerts(limits_gb) as alerts,
+        m.top() as top,
+    ):
+        while True:
+            time.sleep(1)
             match alerts():
                 case "":
-                    print(
-                        f"#[fg=red]{top()} #[fg=brightblue]cpu(#[fg=brightcyan]{cpu()}#[fg=brightblue]) #[fg=brightblue]gpu(#[fg=brightcyan]{nvidia()}#[fg=brightblue])",
-                        flush=True,
-                    )
+                    print(f"#[fg=red]{top()}", flush=True)
                 case _ as a:
-                    print("#[fg=red]" + a, flush=True)
+                    print(f"#[fg=red]{a}", flush=True)
 
 
 @app.command("dwm")
