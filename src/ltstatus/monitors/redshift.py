@@ -12,6 +12,13 @@ def trigger_events(event: threading.Event, stop: threading.Event, log_file: Path
     # TODO selectors can maybe also wait on file descs reading? no inotify? would be better, like a tail
     # but one danger is if the file is not appended, but replaced
 
+    # TODO this can fail when the file doesnt exist, what should we do? why not touch it ... but what when we say there is no redshift, and we dont want to show anything?
+    # just try every now and then to see if one has appeared? what if it is an old file with no activity?
+    # or alternatively we dont use inotify, but the stream select thing? or we dont set it to begin with?
+    # best would be to see if also the process is actually running
+    if not log_file.exists():
+        return
+
     watch = inotify.adapters.Inotify(paths=[str(log_file)], block_duration_s=1)
     while not stop.is_set():
         for _, events, _, _ in watch.event_gen(timeout_s=1, yield_nones=False):  # pyright: ignore[reportGeneralTypeIssues]
@@ -39,6 +46,10 @@ def monitor(event: threading.Event):
     def fn() -> str:
         enabled: None | bool = None
         day: None | float = None
+
+        if not log_file.exists():
+            # TODO distinguish between off and day? not really, kinda the same
+            return ""
 
         with log_file.open("rt") as file:
             for event in file:
