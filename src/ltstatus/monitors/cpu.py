@@ -37,6 +37,6 @@ def monitor():
 
         memory: int = round(psutil.virtual_memory().percent / 10) * 10
 
-        return f"{cores: {padding}}∕{count} {memory: 2}%"
+        return f"{cores:#{padding}}∕{count} {memory:#2}%"
 
     yield fn
