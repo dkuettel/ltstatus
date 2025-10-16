@@ -70,7 +70,7 @@ def app_tmux():
         while True:
             time.sleep(1)
             print(
-                f"#[fg=brightblue]cpu(#[fg=brightcyan]{cpu()}#[fg=brightblue]) #[fg=brightblue]gpu(#[fg=brightcyan]{nvidia()}#[fg=brightblue])",
+                f"#[fg=brightblack]󰬊#[fg=default]{cpu()}  #[fg=brightblack]󰯾#[fg=default]{nvidia()}",
                 flush=True,
             )
 

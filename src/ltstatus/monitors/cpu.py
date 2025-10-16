@@ -4,8 +4,6 @@ from contextlib import contextmanager
 
 import psutil
 
-from ltstatus.tools import compact_ratio
-
 
 @contextmanager
 def monitor():
@@ -16,25 +14,28 @@ def monitor():
     # top --batch --iterations=5 --delay=1 -o '+RES' -w
 
     times: object | None = None
+    count = psutil.cpu_count()
+    assert count is not None
 
     def fn() -> str:
         nonlocal times
+
         new_times: object = psutil.cpu_times()
         if times is None:
             times = new_times
-            return "--m -c"
+            return ""
 
         deltas = psutil._cpu_times_deltas(times, new_times)  # pyright: ignore[reportAttributeAccessIssue]
-        cores: float = (
-            psutil.cpu_count()
+        times = new_times
+
+        cores: int = round(
+            count
             * psutil._cpu_busy_time(deltas)  # pyright: ignore[reportAttributeAccessIssue]
             / psutil._cpu_tot_time(deltas)  # pyright: ignore[reportAttributeAccessIssue]
         )
-        # TODO trying active for now, available might be better?
-        memory: float = psutil.virtual_memory().active / psutil.virtual_memory().total
 
-        times = new_times
+        memory: int = round(psutil.virtual_memory().percent)
 
-        return f"{compact_ratio(memory)}m {cores:.0f}c"
+        return f"{cores}∕{count} {memory}%"
 
     yield fn
