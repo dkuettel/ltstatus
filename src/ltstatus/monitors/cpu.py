@@ -16,6 +16,7 @@ def monitor():
     times: object | None = None
     count = psutil.cpu_count()
     assert count is not None
+    padding = len(str(count))
 
     def fn() -> str:
         nonlocal times
@@ -34,8 +35,8 @@ def monitor():
             / psutil._cpu_tot_time(deltas)  # pyright: ignore[reportAttributeAccessIssue]
         )
 
-        memory: int = round(psutil.virtual_memory().percent)
+        memory: int = round(psutil.virtual_memory().percent / 10) * 10
 
-        return f"{cores}∕{count} {memory}%"
+        return f"{cores: {padding}}∕{count} {memory: 2}%"
 
     yield fn

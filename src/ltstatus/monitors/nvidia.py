@@ -30,7 +30,7 @@ def monitor():
             memory = nvmlDeviceGetMemoryInfo(handle)
             memory_usage: int = round(memory.used / memory.total * 10) * 10  # pyright: ignore[reportUnusedVariable, reportOperatorIssue]
 
-            return f"{gpu_usage}% {memory_usage}%"
+            return f"{gpu_usage: 2}% {memory_usage: 2}%"
 
         yield fn
 
