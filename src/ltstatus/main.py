@@ -100,6 +100,8 @@ def app_dwm(test: bool = False):
         m.bluetooth() as bluetooth,
         m.sound(event, sound_aliases) as sound,
         m.datetime() as datetime,
+        m.cpu() as cpu,
+        m.nvidia() as nvidia,
     ):
         while True:
             event.wait(1)
@@ -107,6 +109,7 @@ def app_dwm(test: bool = False):
             segments = [
                 spotify(),
                 alerts(),
+                f"󰬊{cpu()} 󰯾{nvidia()}",
                 redshift(),
                 bluetooth(),
                 sound(),
