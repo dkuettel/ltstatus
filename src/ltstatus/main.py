@@ -70,7 +70,7 @@ def app_tmux():
         while True:
             time.sleep(1)
             print(
-                f"#[fg=brightblack]󰬊 #[fg=default]{cpu()}#[fg=brightblack]󰯾 #[fg=default]{nvidia()}",
+                f"#[fg=brightblack]󰬊 #[fg=default]{cpu()}#[fg=brightblack]󰯾 #[fg=default]{nvidia()[:-1]}",
                 flush=True,
             )
 
@@ -109,7 +109,7 @@ def app_dwm(test: bool = False):
             segments = [
                 spotify(),
                 alerts(),
-                f"󰬊{cpu()} 󰯾{nvidia()}",
+                f"󰬊 {cpu()}󰯾 {nvidia()[:-1]}",
                 redshift(),
                 bluetooth(),
                 sound(),
