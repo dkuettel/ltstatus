@@ -66,11 +66,12 @@ def app_tmux():
     with (
         m.cpu() as cpu,
         m.nvidia() as nvidia,
+        m.diskpie() as diskpie,
     ):
         while True:
             time.sleep(1)
             print(
-                f"#[fg=brightblack]󰬊 #[fg=default]{cpu()}#[fg=brightblack]󰯾 #[fg=default]{nvidia()[:-1]}",
+                f"#[fg=brightblack]󰬊 #[fg=default]{cpu()}#[fg=brightblack]󰯾 #[fg=default]{nvidia()}{diskpie()[:-1]}",
                 flush=True,
             )
 
@@ -102,6 +103,7 @@ def app_dwm(test: bool = False):
         m.datetime() as datetime,
         m.cpu() as cpu,
         m.nvidia() as nvidia,
+        m.diskpie() as diskpie,
     ):
         while True:
             event.wait(1)
@@ -109,7 +111,7 @@ def app_dwm(test: bool = False):
             segments = [
                 spotify(),
                 alerts(),
-                f"󰬊 {cpu()}󰯾 {nvidia()[:-1]}",
+                f"󰬊 {cpu()}󰯾 {nvidia()}{diskpie()[:-1]}",
                 redshift(),
                 bluetooth(),
                 sound(),
