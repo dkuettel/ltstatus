@@ -23,15 +23,17 @@ def monitor():
             # compute has .gpu, .memory; in percent
             # https://docs.nvidia.com/deploy/nvml-api/group__nvmlDeviceQueries.html#group__nvmlDeviceQueries_1g540824faa6cef45500e0d1dc2f50b321
             compute = nvmlDeviceGetUtilizationRates(handle)
-            gpu_usage: int = round(compute.gpu / 10) * 10  # pyright: ignore[reportArgumentType, reportOperatorIssue]
+            gpu_usage: int = round(compute.gpu / 100 * 3)  # pyright: ignore[reportArgumentType, reportOperatorIssue]
 
             # memory has .free, .total, .used; in bytes
             # https://docs.nvidia.com/deploy/nvml-api/group__nvmlDeviceQueries.html#group__nvmlDeviceQueries_1g2dfeb1db82aa1de91aa6edf941c85ca8
             memory = nvmlDeviceGetMemoryInfo(handle)
-            memory_usage: int = round(memory.used / memory.total * 10) * 10  # pyright: ignore[reportUnusedVariable, reportOperatorIssue]
+            memory_usage: int = round(memory.used / memory.total * 6)  # pyright: ignore[reportUnusedVariable, reportOperatorIssue]
 
-            # TODO hh still jumping?!
-            return f"{gpu_usage:#2}% {memory_usage:#2}%"
+            arrows = ["  ", "󰅂 ", "󰄾 ", "󰶻 "]
+            hexas = ["󰋙 ", "󰫃 ", "󰫄 ", "󰫅 ", "󰫆 ", "󰫇 ", "󰫈 "]
+
+            return f"{hexas[memory_usage]}{arrows[gpu_usage]}"
 
         yield fn
 

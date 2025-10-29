@@ -30,13 +30,19 @@ def monitor():
         times = new_times
 
         cores: int = round(
-            count
-            * psutil._cpu_busy_time(deltas)  # pyright: ignore[reportAttributeAccessIssue]
+            psutil._cpu_busy_time(deltas)  # pyright: ignore[reportAttributeAccessIssue]
             / psutil._cpu_tot_time(deltas)  # pyright: ignore[reportAttributeAccessIssue]
+            * 3
         )
 
-        memory: int = round(psutil.virtual_memory().percent / 10) * 10
+        memory: int = round(psutil.virtual_memory().percent / 100 * 6)
 
-        return f"{cores:#{padding}}∕{count} {memory:#2}%"
+        arrows = ["  ", "󰅂 ", "󰄾 ", "󰶻 "]
+        # tallies = ["  ", "󱪼 ", "󱪽 ", "󱪾 ", "󱪿 ", "󱫀 "]
+        hexas = ["󰋙 ", "󰫃 ", "󰫄 ", "󰫅 ", "󰫆 ", "󰫇 ", "󰫈 "]
+        # pies = ["󰄰 ", " 󰪞 ", "󰪟 ", "󰪠 ", "󰪡 ", "󰪢 ", "󰪣 ", "󰪤 ", "󰪥 "]
+
+        # return f"{cores:#{padding}}∕{count} {memory:#2}%"
+        return f"{hexas[memory]}{arrows[cores]}"
 
     yield fn
