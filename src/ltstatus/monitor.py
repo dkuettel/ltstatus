@@ -1,6 +1,7 @@
 from ltstatus.monitors.bluetooth import monitor as bluetooth
 from ltstatus.monitors.cpu import monitor as cpu
 from ltstatus.monitors.datetime import monitor as datetime
+from ltstatus.monitors.diskpie import monitor as diskpie
 from ltstatus.monitors.diskspace_alerts import monitor as diskspace_alerts
 from ltstatus.monitors.nvidia import monitor as nvidia
 from ltstatus.monitors.process_alerts import monitor as process_alerts
@@ -13,6 +14,7 @@ __all__ = [
     "bluetooth",
     "cpu",
     "datetime",
+    "diskpie",
     "diskspace_alerts",
     "nvidia",
     "process_alerts",
