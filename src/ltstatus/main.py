@@ -71,7 +71,7 @@ def app_tmux():
         while True:
             time.sleep(1)
             print(
-                f"#[fg=brightblack]󰬊 #[fg=default]{cpu()}#[fg=brightblack]󰯾 #[fg=default]{nvidia()}{diskpie()[:-1]}",
+                f"󰬊 {cpu()}󰯾 {nvidia()}{diskpie()[:-1]}",
                 flush=True,
             )
 
