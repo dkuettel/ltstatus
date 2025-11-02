@@ -16,7 +16,6 @@ def monitor():
     times: object | None = None
     count = psutil.cpu_count()
     assert count is not None
-    padding = len(str(count))
 
     def fn() -> str:
         nonlocal times
@@ -24,7 +23,7 @@ def monitor():
         new_times: object = psutil.cpu_times()
         if times is None:
             times = new_times
-            return ""
+            return "󰋙   "
 
         deltas = psutil._cpu_times_deltas(times, new_times)  # pyright: ignore[reportAttributeAccessIssue]
         times = new_times
