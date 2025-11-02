@@ -75,11 +75,11 @@ def app_tmux():
         m.diskpie() as diskpie,
     ):
         while True:
-            time.sleep(1)
             print(
                 f"󰬊 {cpu()}󰯾 {nvidia()}{diskpie()[:-1]}",
                 flush=True,
             )
+            time.sleep(1)
 
 
 @app.command("tmux2")
@@ -89,12 +89,12 @@ def app_tmux2():
         m.top() as top,
     ):
         while True:
-            time.sleep(1)
             match alerts():
                 case "":
                     print(f"#[fg=red]{top()}", flush=True)
                 case _ as a:
                     print(f"#[fg=red]{a}", flush=True)
+            time.sleep(1)
 
 
 @app.command("dwm")
@@ -112,8 +112,6 @@ def app_dwm(test: bool = False):
         m.diskpie() as diskpie,
     ):
         while True:
-            event.wait(1)
-            event.clear()
             segments = [
                 spotify(),
                 alerts(),
@@ -135,6 +133,8 @@ def app_dwm(test: bool = False):
                     ],
                     check=True,
                 )
+            event.wait(1)
+            event.clear()
 
 
 if __name__ == "__main__":
