@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 import threading
@@ -25,6 +26,11 @@ app = typer.Typer(
     pretty_exceptions_enable=False,
     rich_markup_mode=None,
 )
+
+
+@app.command("run")
+def app_run(path: Path):
+    os.execlp("python", "python", path)
 
 
 @app.command("all")
