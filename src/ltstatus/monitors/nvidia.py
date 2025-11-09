@@ -8,13 +8,20 @@ from pynvml import (
     nvmlDeviceGetUtilizationRates,
     nvmlInit,
     nvmlShutdown,
+    NVMLError_LibraryNotFound,  # pyright: ignore[reportAttributeAccessIssue]
 )
 
+def missing():
+    return "- - "
 
 @contextmanager
 def monitor():
     # https://docs.nvidia.com/deploy/nvml-api/index.html
-    nvmlInit()
+    try:
+        nvmlInit()
+    except NVMLError_LibraryNotFound:
+        yield missing
+        return
 
     try:
         handle = nvmlDeviceGetHandleByIndex(0)
