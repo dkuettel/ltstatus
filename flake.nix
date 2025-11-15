@@ -26,9 +26,19 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, pyproject-nix, uv2nix, pyproject-build-systems, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      pyproject-nix,
+      uv2nix,
+      pyproject-build-systems,
+      ...
+    }@inputs:
     let
-      make = system:
+      make =
+        system:
         let
           inherit (nixpkgs) lib;
           # system = "x86_64-linux";
@@ -44,7 +54,15 @@
           '';
           dev = pkgs.buildEnv {
             name = "dev";
-            paths = [ nix-uv ] ++ (with pkgs; [ python313 ruff basedpyright ]) ++ prod-dependencies;
+            paths = [
+              nix-uv
+            ]
+            ++ (with pkgs; [
+              python313
+              ruff
+              basedpyright
+            ])
+            ++ prod-dependencies;
             extraOutputsToInstall = [ "lib" ];
           };
           workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
@@ -55,15 +73,18 @@
             # from https://github.com/TyberiusPrime/uv2nix_hammer_overrides/tree/main
             # TODO but i dont understand why the right build system is not automatically used
             # TODO also how can they download pypi stuff without needing hashes to be updated?
-            pprofile = prev.pprofile.overrideAttrs (old:
-              { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; }); }
-            );
-            pyprof2calltree = prev.pprofile.overrideAttrs (old:
-              { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; }); }
-            );
-            inotify = prev.inotify.overrideAttrs (old:
-              { nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; }); }
-            );
+            pprofile = prev.pprofile.overrideAttrs (old: {
+              nativeBuildInputs =
+                (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; });
+            });
+            pyprof2calltree = prev.pprofile.overrideAttrs (old: {
+              nativeBuildInputs =
+                (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; });
+            });
+            inotify = prev.inotify.overrideAttrs (old: {
+              nativeBuildInputs =
+                (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; });
+            });
           };
           pythonSet =
             (pkgs.callPackage pyproject-nix.build.packages {
@@ -101,7 +122,10 @@
           # they get pyright? how does it discover venv?
           # could we edit it against this pyproject toml here? not sure that is
           # right, and we dont want to use uv, right?
-          apps.default = { type = "app"; program = "${app}/bin/ltstatus"; };
+          apps.default = {
+            type = "app";
+            program = "${app}/bin/ltstatus";
+          };
         };
     in
     flake-utils.lib.eachDefaultSystem make;
