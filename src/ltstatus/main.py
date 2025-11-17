@@ -100,41 +100,51 @@ def app_tmux2():
 @app.command("dwm")
 def app_dwm(test: bool = False):
     event = threading.Event()
-    with (
-        m.spotify(event) as spotify,
-        m.process_alerts(flags={"steam": re.compile(r".*steam.*")}) as alerts,
-        m.redshift(event) as redshift,
-        m.bluetooth() as bluetooth,
-        m.sound(event, sound_aliases) as sound,
-        m.datetime() as datetime,
-        m.cpu() as cpu,
-        m.nvidia() as nvidia,
-        m.diskpie() as diskpie,
-    ):
-        while True:
-            segments = [
-                spotify(),
-                alerts(),
-                f"󰬊 {cpu()}󰯾 {nvidia()}{diskpie()[:-1]}",
-                redshift(),
-                bluetooth(),
-                sound(),
-                datetime(),
-            ]
-            segments = [s for s in segments if s != ""]
-            if test:
-                print(" | ".join(segments), flush=True)
-            else:
-                subprocess.run(
-                    args=[
-                        "xsetroot",
-                        "-name",
-                        " " + " | ".join(segments) + " ",
-                    ],
-                    check=True,
-                )
-            event.wait(1)
-            event.clear()
+    try:
+        with (
+            m.spotify(event) as spotify,
+            m.process_alerts(flags={"steam": re.compile(r".*steam.*")}) as alerts,
+            m.redshift(event) as redshift,
+            m.bluetooth() as bluetooth,
+            m.sound(event, sound_aliases) as sound,
+            m.datetime() as datetime,
+            m.cpu() as cpu,
+            m.nvidia() as nvidia,
+            m.diskpie() as diskpie,
+        ):
+            while True:
+                segments = [
+                    spotify(),
+                    alerts(),
+                    f"󰬊 {cpu()}󰯾 {nvidia()}{diskpie()[:-1]}",
+                    redshift(),
+                    bluetooth(),
+                    sound(),
+                    datetime(),
+                ]
+                segments = [s for s in segments if s != ""]
+                if test:
+                    print(" | ".join(segments), flush=True)
+                else:
+                    subprocess.run(
+                        args=[
+                            "xsetroot",
+                            "-name",
+                            " " + " | ".join(segments) + " ",
+                        ],
+                        check=True,
+                    )
+                event.wait(1)
+                event.clear()
+    finally:
+        subprocess.run(
+            args=[
+                "xsetroot",
+                "-name",
+                "exited",
+            ],
+            check=True,
+        )
 
 
 if __name__ == "__main__":
