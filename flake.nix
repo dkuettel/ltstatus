@@ -2,10 +2,7 @@
   description = "ltstatus";
 
   inputs = {
-    config.url = "github:dkuettel/config/main";
-    nixpkgs.follows = "config/nixpkgs";
-    # nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-    # unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:dkuettel/nixpkgs/stable";
     flake-utils.url = "github:numtide/flake-utils";
 
     # see https://pyproject-nix.github.io/uv2nix/usage/hello-world.html
