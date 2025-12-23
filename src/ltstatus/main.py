@@ -19,6 +19,7 @@ sound_aliases = {
     "iFi (by AMR) HD USB Audio Pro": "ifi",
     "apm.zero": "apm",
     "Dummy Output": "none",
+    "MacBook Pro J314 Speakers": "speakers",
 }
 
 app = typer.Typer(
