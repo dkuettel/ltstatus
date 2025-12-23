@@ -5,7 +5,7 @@
     nixpkgs.url = "github:dkuettel/nixpkgs/stable";
     flake-utils.url = "github:numtide/flake-utils";
 
-    # see https://pyproject-nix.github.io/uv2nix/usage/hello-world.html
+    # see https://pyproject-nix.github.io/
 
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
@@ -34,99 +34,120 @@
       pyproject-nix,
       uv2nix,
       pyproject-build-systems,
-      ...
-    }@inputs:
-    let
-      make =
-        system:
-        let
-          inherit (nixpkgs) lib;
-          # system = "x86_64-linux";
-          pkgs = nixpkgs.legacyPackages.${system};
-          prod-dependencies = with pkgs; [ ];
-          # TODO nvidia lib is not available like that, but also not in the nix built version
-          # so we would have to patch up the lib for that?
-          # I think setting it with ld_lib_path is not very good
-          nix-uv = pkgs.writeScriptBin "uv" ''
-            #!${pkgs.zsh}/bin/zsh
-            set -eu -o pipefail
-            LD_LIBRARY_PATH=/run/opengl-driver/lib UV_PYTHON=${pkgs.python313}/bin/python ${pkgs.uv}/bin/uv --no-python-downloads $@
-          '';
-          dev = pkgs.buildEnv {
-            name = "dev";
-            paths = [
-              nix-uv
-            ]
-            ++ (with pkgs; [
-              python313
-              ruff
-              basedpyright
-            ])
-            ++ prod-dependencies;
-            extraOutputsToInstall = [ "lib" ];
-          };
-          workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
-          overlay = workspace.mkPyprojectOverlay {
-            sourcePreference = "wheel";
-          };
-          pyprojectOverrides = final: prev: {
-            # from https://github.com/TyberiusPrime/uv2nix_hammer_overrides/tree/main
-            # TODO but i dont understand why the right build system is not automatically used
-            # TODO also how can they download pypi stuff without needing hashes to be updated?
-            pprofile = prev.pprofile.overrideAttrs (old: {
-              nativeBuildInputs =
-                (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; });
-            });
-            pyprof2calltree = prev.pprofile.overrideAttrs (old: {
-              nativeBuildInputs =
-                (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; });
-            });
-            inotify = prev.inotify.overrideAttrs (old: {
-              nativeBuildInputs =
-                (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; });
-            });
-          };
-          pythonSet =
-            (pkgs.callPackage pyproject-nix.build.packages {
-              python = pkgs.python313;
-            }).overrideScope
-              (
-                lib.composeManyExtensions [
-                  pyproject-build-systems.overlays.default
-                  overlay
-                  pyprojectOverrides
-                ]
-              );
-          venv = pythonSet.mkVirtualEnv "osh-env" workspace.deps.default;
-          env = pkgs.buildEnv {
-            name = "ltstatus env";
-            paths = [ venv ] ++ prod-dependencies;
-          };
-          app = pkgs.writeScriptBin "ltstatus" ''
-            #!${pkgs.zsh}/bin/zsh
-            set -eu -o pipefail
-            LD_LIBRARY_PATH=/run/opengl-driver/lib path=(${env}/bin $path) python -Pm ltstatus.main $@
-          '';
-        in
-        {
-          # > nix build .#name
-          packages = {
-            default = dev;
-            venv = venv;
-            dev = dev;
-            app = app;
-          };
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        name = "ltstatus";
 
-          # > nix run .#name
-          # TODO make this a bangable again? but then, the bangable users, how do
-          # they get pyright? how does it discover venv?
-          # could we edit it against this pyproject toml here? not sure that is
-          # right, and we dont want to use uv, right?
-          apps.default = {
-            type = "app";
-            program = "${app}/bin/ltstatus";
-          };
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
         };
-    in
-    flake-utils.lib.eachDefaultSystem make;
+        inherit (pkgs) lib;
+        inherit (builtins) map;
+
+        python = pkgs.python313;
+
+        uv = pkgs.writeScriptBin "uv" ''
+          #!${pkgs.zsh}/bin/zsh
+          set -eu -o pipefail
+          UV_PYTHON=${python}/bin/python ${pkgs.uv}/bin/uv --no-python-downloads $@
+        '';
+        # for pyproject.toml
+        #   [tool.uv.build-backend]
+        #   namespace = true  # if you use namespace packages
+
+        prodPkgs = # with pkgs;
+          [ ];
+
+        devPkgs = (
+          [
+            uv
+            python
+          ]
+          ++ (with pkgs; [
+            ruff
+            basedpyright
+            nil # nix language server
+            nixfmt-rfc-style # nixpkgs-fmt is deprecated
+          ])
+        );
+
+        devLibs = with pkgs; [
+          stdenv.cc.cc
+          # zlib
+          # libglvnd
+          # xorg.libX11
+          # glib
+          # eigen
+        ];
+
+        devLdLibs = pkgs.buildEnv {
+          name = "${name}-dev-ld-libs";
+          paths = map (lib.getOutput "lib") devLibs;
+        };
+
+        devEnv = pkgs.buildEnv {
+          name = "${name}-dev-env";
+          paths = devPkgs ++ devLibs ++ prodPkgs;
+        };
+
+        pyproject = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
+        moduleOverrides =
+          final: prev:
+          let
+            # see https://github.com/TyberiusPrime/uv2nix_hammer_overrides/tree/main
+            # I dont fully understand what we do here, we switch to setuptools instead of wheels?
+            # for libs that need to build for nix? and we might have to add build dependencies?
+            setuptools =
+              prev_lib:
+              prev_lib.overrideAttrs (old: {
+                nativeBuildInputs =
+                  (old.nativeBuildInputs or [ ]) ++ (final.resolveBuildSystem { setuptools = [ ]; });
+              });
+          in
+          {
+            pprofile = setuptools prev.pprofile;
+            pyprof2calltree = setuptools prev.pyprof2calltree;
+            inotify = setuptools prev.inotify;
+          };
+        modules =
+          (pkgs.callPackage pyproject-nix.build.packages {
+            python = python;
+          }).overrideScope
+            (
+              lib.composeManyExtensions [
+                pyproject-build-systems.overlays.default
+                (pyproject.mkPyprojectOverlay { sourcePreference = "wheel"; })
+                moduleOverrides
+              ]
+            );
+        venv = modules.mkVirtualEnv "${name}-venv" pyproject.deps.default;
+        inherit (pkgs.callPackages pyproject-nix.build.util { }) mkApplication;
+        app = mkApplication {
+          venv = venv;
+          package = modules.ltstatus;
+        };
+        package = pkgs.buildEnv {
+          name = "${name}-env";
+          paths = [ app ] ++ prodPkgs;
+          postBuild = ''
+            # TODO for example add some $out/share/zsh/site-functions/_name for completions
+          '';
+        };
+
+      in
+      {
+        devShells.default = pkgs.mkShellNoCC {
+          packages = [ devEnv ];
+          LD_LIBRARY_PATH = "/run/opengl-driver/lib/:${pkgs.lib.makeLibraryPath [ devLdLibs ]}";
+          shellHook = ''
+            export PATH=$PWD/bin:$PATH
+          '';
+        };
+
+        packages.default = package;
+      }
+    );
 }

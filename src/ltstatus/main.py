@@ -146,7 +146,3 @@ def app_dwm(test: bool = False):
             ],
             check=True,
         )
-
-
-if __name__ == "__main__":
-    app()
