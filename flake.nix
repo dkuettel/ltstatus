@@ -129,12 +129,13 @@
           venv = venv;
           package = modules.ltstatus;
         };
+        wrappedApp = pkgs.writeScriptBin "ltstatus" ''
+          #!${pkgs.zsh}/bin/zsh
+          LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/run/opengl-driver/lib/ ${app}/bin/ltstatus $@
+        '';
         package = pkgs.buildEnv {
           name = "${name}-env";
-          paths = [ app ] ++ prodPkgs;
-          postBuild = ''
-            # TODO for example add some $out/share/zsh/site-functions/_name for completions
-          '';
+          paths = [ wrappedApp ] ++ prodPkgs;
         };
 
       in
