@@ -47,7 +47,7 @@
         inherit (pkgs) lib;
         inherit (builtins) map;
 
-        python = pkgs.python313;
+        python = pkgs.python314;
 
         uv = pkgs.writeScriptBin "uv" ''
           #!${pkgs.zsh}/bin/zsh
