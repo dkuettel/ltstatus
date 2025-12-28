@@ -3,5 +3,5 @@ set -eux -o pipefail
 
 cd ${0:a:h:h}
 
-nix build .#dev
-nix build --out-link ./app .#app
+nix build
+nd env build
