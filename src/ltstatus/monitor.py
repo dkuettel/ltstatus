@@ -6,6 +6,7 @@ from ltstatus.monitors.diskspace_alerts import monitor as diskspace_alerts
 from ltstatus.monitors.nvidia import monitor as nvidia
 from ltstatus.monitors.process_alerts import monitor as process_alerts
 from ltstatus.monitors.redshift import monitor as redshift
+from ltstatus.monitors.redshift import monitor_systemd as redshift_systemd
 from ltstatus.monitors.sound import monitor as sound
 from ltstatus.monitors.spotify import monitor as spotify
 from ltstatus.monitors.top import monitor as top
@@ -19,6 +20,7 @@ __all__ = [
     "nvidia",
     "process_alerts",
     "redshift",
+    "redshift_systemd",
     "sound",
     "spotify",
     "top",

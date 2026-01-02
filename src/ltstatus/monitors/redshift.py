@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import threading
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
+from typing import IO
 
 import inotify.adapters
 
@@ -26,6 +29,14 @@ def trigger_events(event: threading.Event, stop: threading.Event, log_file: Path
                 event.set()
 
 
+re_status = re.compile(r".*Status: (?P<status>Enabled|Disabled)")
+re_period = re.compile(
+    r".*Period: (?P<period>Daytime|Night|Transition \((?P<percentage>[0-9.]+)% day\))"
+)
+re_started = re.compile(r".*Started .*")
+re_stopped = re.compile(r".*Stopped .*")
+
+
 @contextmanager
 def monitor(event: threading.Event):
     log_file = Path("~/.log-redshift").expanduser()
@@ -34,10 +45,6 @@ def monitor(event: threading.Event):
     thread = threading.Thread(target=trigger_events, args=(event, stop, log_file))
     thread.start()
 
-    re_status = re.compile(r".*Status: (?P<status>Enabled|Disabled)")
-    re_period = re.compile(
-        r".*Period: (?P<period>Daytime|Night|Transition \((?P<percentage>[0-9.]+)% day\))"
-    )
     # NOTE alternatives states from log
     # re_temperature = re.compile(r".*Color temperature: (?P<temperature>\d+)K")
     # re_brightness = re.compile(r".*Brightness: (?P<brightness>[0-9.]+)")
@@ -76,7 +83,7 @@ def monitor(event: threading.Event):
                 return ""
             if day == 0.0:
                 return "night"
-            return f"night@{1-day:.0%}"
+            return f"night@{1 - day:.0%}"
 
         return "light"
 
@@ -85,3 +92,110 @@ def monitor(event: threading.Event):
     finally:
         stop.set()
         thread.join()
+
+
+@dataclass
+class State:
+    running: bool = False
+    enabled: None | bool = None
+    day: None | float = None
+
+
+def read_systemd(
+    event: threading.Event,
+    stdout: IO[str],
+    lock: threading.Lock,
+    state: State,
+):
+    for entry in stdout:
+        entry = entry.strip()
+
+        match re_started.fullmatch(entry):
+            case re.Match() as match:
+                with lock:
+                    state.running = True
+                event.set()
+                continue
+
+        match re_stopped.fullmatch(entry):
+            case re.Match() as match:
+                with lock:
+                    state.running = False
+                event.set()
+                continue
+
+        match re_status.fullmatch(entry):
+            case re.Match() as match:
+                with lock:
+                    state.enabled = match["status"] == "Enabled"
+                event.set()
+                continue
+
+        match re_period.fullmatch(entry):
+            case re.Match() as match:
+                if match["period"] == "Daytime":
+                    day = 1.0
+                elif match["period"] == "Night":
+                    day = 0.0
+                else:
+                    day = float(match["percentage"]) / 100
+                with lock:
+                    state.day = day
+                event.set()
+                continue
+
+        # TODO match systemd start stops, and have a running var
+
+
+@contextmanager
+def monitor_systemd(event: threading.Event):
+    # TODO this will work even if no service is there, right?
+    # TODO journalctl is efficient for tailing I think, but there is a bit of delay (not sure if that is buffering, and if it can be prevented for some services)
+    with subprocess.Popen(
+        [
+            "journalctl",
+            "--user",
+            "--boot",
+            "--quiet",
+            "--output=cat",
+            "--no-tail",
+            "--follow",
+            "--unit=redshift",
+        ],
+        stdout=subprocess.PIPE,
+        text=True,
+    ) as p:
+        assert p.stdout is not None
+
+        lock = threading.Lock()
+        state = State()
+        thread = threading.Thread(
+            target=read_systemd,
+            args=(event, p.stdout, lock, state),
+        )
+        thread.start()
+
+        def fn() -> str:
+            with lock:
+                if not state.running:
+                    return ""
+
+                if (state.enabled is None) or (state.day is None):
+                    return "redshift error"
+
+                if not state.enabled:
+                    return "light"
+
+                if state.day == 1.0:
+                    return ""
+
+                if state.day == 0.0:
+                    return "night"
+
+                return f"night@{1 - state.day:.0%}"
+
+        try:
+            yield fn
+        finally:
+            p.terminate()  # TODO or .kill()?
+            thread.join()
