@@ -107,7 +107,7 @@ def read_systemd(
     lock: threading.Lock,
     state: State,
 ):
-    # TODO this is actually more efficient, couldnt we do the same with the
+    # NOTE this is actually more efficient, couldnt we do the same with the
     # file-based one? and that one is also more responsive, does systemd offer
     # places to write data? or even there we could still write to ~/.something?
     # is there an easy way to read the file and know when started and stopped?
@@ -149,12 +149,10 @@ def read_systemd(
                 event.set()
                 continue
 
-        # TODO match systemd start stops, and have a running var
-
 
 @contextmanager
 def monitor_systemd(event: threading.Event):
-    # TODO this will work even if no service is there, right?
+    # NOTE journalctl does not complain if the --unit=name does not exist, it just shows up as an empty log
     # TODO journalctl is efficient for tailing I think, but there is a bit of delay (not sure if that is buffering, and if it can be prevented for some services)
     with subprocess.Popen(
         [
