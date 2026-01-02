@@ -107,6 +107,11 @@ def read_systemd(
     lock: threading.Lock,
     state: State,
 ):
+    # TODO this is actually more efficient, couldnt we do the same with the
+    # file-based one? and that one is also more responsive, does systemd offer
+    # places to write data? or even there we could still write to ~/.something?
+    # is there an easy way to read the file and know when started and stopped?
+    # we could make sure the service deletes the file when it stops
     for entry in stdout:
         entry = entry.strip()
 
