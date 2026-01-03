@@ -1,97 +1,100 @@
 from __future__ import annotations
 
+import os
 import re
+import select
 import subprocess
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
+from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import IO
 
-import inotify.adapters
-
-
-def trigger_events(event: threading.Event, stop: threading.Event, log_file: Path):
-    # TODO selectors can maybe also wait on file descs reading? no inotify? would be better, like a tail
-    # but one danger is if the file is not appended, but replaced
-
-    # TODO this can fail when the file doesnt exist, what should we do? why not touch it ... but what when we say there is no redshift, and we dont want to show anything?
-    # just try every now and then to see if one has appeared? what if it is an old file with no activity?
-    # or alternatively we dont use inotify, but the stream select thing? or we dont set it to begin with?
-    # best would be to see if also the process is actually running
-    if not log_file.exists():
-        return
-
-    watch = inotify.adapters.Inotify(paths=[str(log_file)], block_duration_s=1)
-    while not stop.is_set():
-        for _, events, _, _ in watch.event_gen(timeout_s=1, yield_nones=False):  # pyright: ignore[reportGeneralTypeIssues]
-            if "IN_MODIFY" in events:
-                event.set()
-
-
+# NOTE alternatives states from log
+# re_temperature = re.compile(r".*Color temperature: (?P<temperature>\d+)K")
+# re_brightness = re.compile(r".*Brightness: (?P<brightness>[0-9.]+)")
 re_status = re.compile(r".*Status: (?P<status>Enabled|Disabled)")
 re_period = re.compile(
     r".*Period: (?P<period>Daytime|Night|Transition \((?P<percentage>[0-9.]+)% day\))"
 )
-re_started = re.compile(r".*Started .*")
-re_stopped = re.compile(r".*Stopped .*")
+re_exited = re.compile(r".*exited .*")
 
 
-@contextmanager
-def monitor(event: threading.Event):
-    log_file = Path("~/.log-redshift").expanduser()
+def tail(path: Path, stop: int) -> Iterator[list[str | None]]:
+    """
+    data comes in batches
+    str are lines without new lines ending, None is when the file disappeared
+    """
 
-    stop = threading.Event()
-    thread = threading.Thread(target=trigger_events, args=(event, stop, log_file))
-    thread.start()
+    with subprocess.Popen(
+        [
+            "inotifywait",
+            "--quiet",
+            "--monitor",
+            "--event",
+            "create,modify,move,delete",
+            str(path.parent),
+            "--include",
+            str(path.name),
+        ],
+        text=True,
+        stdout=subprocess.PIPE,
+    ) as p:
+        assert p.stdout is not None
+        f = None
+        try:
+            while True:
+                if f is None:
+                    try:
+                        f = path.open("rt")
+                    except:
+                        pass
 
-    # NOTE alternatives states from log
-    # re_temperature = re.compile(r".*Color temperature: (?P<temperature>\d+)K")
-    # re_brightness = re.compile(r".*Brightness: (?P<brightness>[0-9.]+)")
+                if f is not None:
+                    batch: list[str | None] = [l.rstrip("\n") for l in f]
+                    if len(batch) > 0:
+                        yield batch
 
-    # TODO could also do it less often, doesnt change so fast usually, unless manual switches
-    def fn() -> str:
-        enabled: None | bool = None
-        day: None | float = None
+                    else:
+                        current = os.stat(f.fileno())
+                        if current.st_size < f.tell():
+                            # most likely new data since file has been truncated
+                            yield [None]
+                            f.close()
+                            f = None
+                            continue
 
-        if not log_file.exists():
-            # TODO distinguish between off and day? not really, kinda the same
-            return ""
+                        try:
+                            fresh = os.stat(path)
+                            if (current.st_dev, current.st_ino) != (
+                                fresh.st_dev,
+                                fresh.st_ino,
+                            ):
+                                # not the same file anymore
+                                yield [None]
+                                f.close()
+                                f = None
+                                continue
 
-        with log_file.open("rt") as file:
-            for event in file:
-                event = event.strip()
-                match re_status.fullmatch(event):
-                    case re.Match() as match:
-                        enabled = match["status"] == "Enabled"
-                        continue
-                match re_period.fullmatch(event):
-                    case re.Match() as match:
-                        if match["period"] == "Daytime":
-                            day = 1.0
-                        elif match["period"] == "Night":
-                            day = 0.0
-                        else:
-                            day = float(match["percentage"]) / 100
-                        continue
+                        except:
+                            # file is not there anymore
+                            yield [None]
+                            f.close()
+                            f = None
+                            continue
 
-        if (enabled is None) or (day is None):
-            return "redshift error"
+                r, _, _ = select.select([p.stdout, stop], [], [], None)
+                while len(r) > 0:
+                    if stop in r:
+                        return
+                    p.stdout.readline()
+                    r, _, _ = select.select([p.stdout], [], [], 0.1)
 
-        if enabled:
-            if day == 1.0:
-                return ""
-            if day == 0.0:
-                return "night"
-            return f"night@{1 - day:.0%}"
-
-        return "light"
-
-    try:
-        yield fn
-    finally:
-        stop.set()
-        thread.join()
+        finally:
+            if f is not None:
+                f.close()
+                f = None
 
 
 @dataclass
@@ -101,104 +104,84 @@ class State:
     day: None | float = None
 
 
-def read_systemd(
+def keep_reading_log(
     event: threading.Event,
-    stdout: IO[str],
+    path: Path,
     lock: threading.Lock,
     state: State,
+    stop: int,
 ):
-    # NOTE this is actually more efficient, couldnt we do the same with the
-    # file-based one? and that one is also more responsive, does systemd offer
-    # places to write data? or even there we could still write to ~/.something?
-    # is there an easy way to read the file and know when started and stopped?
-    # we could make sure the service deletes the file when it stops
-    for entry in stdout:
-        entry = entry.strip()
+    for batch in tail(path, stop):
+        with lock:
+            old = copy(state)
 
-        match re_started.fullmatch(entry):
-            case re.Match() as match:
-                with lock:
-                    state.running = True
-                event.set()
-                continue
-
-        match re_stopped.fullmatch(entry):
-            case re.Match() as match:
-                with lock:
+            for entry in batch:
+                if entry is None:
                     state.running = False
-                event.set()
-                continue
+                    continue
 
-        match re_status.fullmatch(entry):
-            case re.Match() as match:
-                with lock:
-                    state.enabled = match["status"] == "Enabled"
-                event.set()
-                continue
+                match re_exited.fullmatch(entry):
+                    case re.Match() as match:
+                        state.running = False
+                        continue
 
-        match re_period.fullmatch(entry):
-            case re.Match() as match:
-                if match["period"] == "Daytime":
-                    day = 1.0
-                elif match["period"] == "Night":
-                    day = 0.0
-                else:
-                    day = float(match["percentage"]) / 100
-                with lock:
-                    state.day = day
+                state.running = True
+
+                match re_status.fullmatch(entry):
+                    case re.Match() as match:
+                        state.enabled = match["status"] == "Enabled"
+                        continue
+
+                match re_period.fullmatch(entry):
+                    case re.Match() as match:
+                        if match["period"] == "Daytime":
+                            day = 1.0
+                        elif match["period"] == "Night":
+                            day = 0.0
+                        else:
+                            day = float(match["percentage"]) / 100
+                        state.day = day
+                        continue
+
+            if old != state:
                 event.set()
-                continue
 
 
 @contextmanager
-def monitor_systemd(event: threading.Event):
-    # NOTE journalctl does not complain if the --unit=name does not exist, it just shows up as an empty log
-    # TODO journalctl is efficient for tailing I think, but there is a bit of delay (not sure if that is buffering, and if it can be prevented for some services)
-    with subprocess.Popen(
-        [
-            "journalctl",
-            "--user",
-            "--boot",
-            "--quiet",
-            "--output=cat",
-            "--no-tail",
-            "--follow",
-            "--unit=redshift",
-        ],
-        stdout=subprocess.PIPE,
-        text=True,
-    ) as p:
-        assert p.stdout is not None
+def monitor(event: threading.Event):
+    log_file = Path("~/.log-redshift").expanduser()
 
-        lock = threading.Lock()
-        state = State()
-        thread = threading.Thread(
-            target=read_systemd,
-            args=(event, p.stdout, lock, state),
-        )
-        thread.start()
+    lock = threading.Lock()
+    state = State()
 
-        def fn() -> str:
-            with lock:
-                if not state.running:
-                    return ""
+    stop_read, stop_write = os.pipe()
 
-                if (state.enabled is None) or (state.day is None):
-                    return "redshift error"
+    thread = threading.Thread(
+        target=keep_reading_log,
+        args=(event, log_file, lock, state, stop_read),
+    )
+    thread.start()
 
-                if not state.enabled:
-                    return "light"
+    def fn() -> str:
+        with lock:
+            # print(state)
+            if not state.running:
+                return ""
 
+            if (state.enabled is None) or (state.day is None):
+                return "redshift error"
+
+            if state.enabled:
                 if state.day == 1.0:
                     return ""
-
                 if state.day == 0.0:
                     return "night"
-
                 return f"night@{1 - state.day:.0%}"
 
-        try:
-            yield fn
-        finally:
-            p.terminate()  # TODO or .kill()?
-            thread.join()
+            return "light"
+
+    try:
+        yield fn
+    finally:
+        os.write(stop_write, b"stop")
+        thread.join()

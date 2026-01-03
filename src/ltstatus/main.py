@@ -44,7 +44,7 @@ def app_all():
         m.nvidia() as nvidia,
         m.spotify(event) as spotify,
         m.process_alerts(flags={"steam": re.compile(r".*steam.*")}) as alerts,
-        m.redshift_systemd(event) as redshift,
+        m.redshift(event) as redshift,
         m.bluetooth() as bluetooth,
         m.sound(event, sound_aliases) as sound,
         m.datetime() as datetime,
@@ -105,7 +105,7 @@ def app_dwm(test: bool = False):
         with (
             m.spotify(event) as spotify,
             m.process_alerts(flags={"steam": re.compile(r".*steam.*")}) as alerts,
-            m.redshift_systemd(event) as redshift,
+            m.redshift(event) as redshift,
             m.bluetooth() as bluetooth,
             m.sound(event, sound_aliases) as sound,
             m.datetime() as datetime,
