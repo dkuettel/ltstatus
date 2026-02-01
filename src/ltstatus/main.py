@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+import sys
 import threading
 import time
 from pathlib import Path
@@ -31,7 +32,9 @@ app = typer.Typer(
 
 @app.command("run")
 def app_run(path: Path):
-    os.execlp("python", "python", path)
+    exe = sys.executable
+    assert exe is not None and exe != "", exe
+    os.execl(exe, exe, path)
 
 
 @app.command("all")
