@@ -18,7 +18,7 @@ limits_gb = {
 
 sound_aliases = {
     "iFi (by AMR) HD USB Audio Pro": "ifi",
-    "apm.zero": "apm",
+    "apm2.zero": "apm",
     "Dummy Output": "none",
     "MacBook Pro J314 Speakers": "speakers",
 }
