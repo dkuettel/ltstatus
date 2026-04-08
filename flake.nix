@@ -58,8 +58,12 @@
         #   [tool.uv.build-backend]
         #   namespace = true  # if you use namespace packages
 
-        prodPkgs = # with pkgs;
-          [ ];
+        prodPkgs = with pkgs; [
+          inotify-tools
+          pulseaudio # for pactl
+          bluez # bluetoothctl
+          xorg.xsetroot # xsetroot
+        ];
 
         devPkgs = (
           [
