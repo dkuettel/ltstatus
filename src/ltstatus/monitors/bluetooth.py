@@ -12,6 +12,7 @@ def run_cmd(args: list[str]) -> str:
 @contextmanager
 def monitor():
     # TODO maybe cache a bit more and dont do it every one second?
+    # TODO this doesnt actually play well if you have more than one bluetooth dongle (only uses one of them)
     def fn() -> str:
         try:
             enabled = "Powered: yes" in run_cmd(["bluetoothctl", "show"])
