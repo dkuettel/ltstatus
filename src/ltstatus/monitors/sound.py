@@ -24,9 +24,20 @@ def trigger_events(event: threading.Event, stop: threading.Event):
         while not stop.is_set():
             if selector.select(1):  # wait
                 while selector.select(0.01):  # read all that is ready
-                    # NOTE the state check in monitor actually causes events too, and that would cause a feedback loop
-                    # it seems sufficient to just look at "change" events
-                    if process.stdout.readline().startswith("Event 'change'"):
+                    # NOTE the state check in monitor.fn actually causes events too
+                    # the `pactl` there causes:
+                    # - Event 'new' on client #xyz
+                    # - Event 'change' on client #xyz
+                    # - Event 'remove' on client #xyz
+                    # we ignore them to not run in a hot feedback loop
+                    e: str = process.stdout.readline()
+                    if (
+                        e.startswith("Event 'new' on client ")
+                        or e.startswith("Event 'change' on client ")
+                        or e.startswith("Event 'remove' on client ")
+                    ):
+                        continue
+                    if e.startswith("Event 'change' "):
                         event.set()
 
 
