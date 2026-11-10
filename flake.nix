@@ -74,7 +74,7 @@
             ruff
             basedpyright
             nil # nix language server
-            nixfmt-rfc-style # nixpkgs-fmt is deprecated
+            nixfmt
           ])
         );
 
