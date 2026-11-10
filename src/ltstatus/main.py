@@ -54,7 +54,8 @@ def app_all():
         m.datetime() as datetime,
     ):
         while True:
-            event.wait(2)
+            time.sleep(0.1)
+            event.wait(1.9)
             event.clear()
             segments = [
                 alerts(),
@@ -139,7 +140,8 @@ def app_dwm(test: bool = False):
                         ],
                         check=True,
                     )
-                event.wait(1)
+                time.sleep(0.1)
+                event.wait(0.9)
                 event.clear()
     finally:
         subprocess.run(
