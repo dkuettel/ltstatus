@@ -72,7 +72,7 @@
           ]
           ++ (with pkgs; [
             ruff
-            basedpyright
+            ty
             nil # nix language server
             nixfmt
           ])
