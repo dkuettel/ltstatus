@@ -105,6 +105,13 @@ def app_tmux2():
 
 @app.command("dwm")
 def app_dwm(test: bool = False):
+    # TODO use kill -s USR1 {pid} next time it is stuck to find out where
+    import faulthandler
+    import signal
+
+    # faulthandler.enable(c_stack=False)
+    faulthandler.register(signal.SIGUSR1)
+
     event = threading.Event()
     try:
         with (
