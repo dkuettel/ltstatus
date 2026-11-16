@@ -30,6 +30,7 @@ def trigger_events(event: threading.Event, stop: threading.Event):
                     # - Event 'change' on client #xyz
                     # - Event 'remove' on client #xyz
                     # we ignore them to not run in a hot feedback loop
+                    # TODO could it be that there is no full line to read and so we are stuck?
                     e: str = process.stdout.readline()
                     if (
                         e.startswith("Event 'new' on client ")
@@ -121,4 +122,6 @@ def monitor(event: threading.Event, aliases: dict[str, str] | None = None):
         yield fn
     finally:
         stop.set()
-        thread.join()
+        # TODO sometimes we fail in the main loop, and try to exit here, but join is stuck
+        # there is something in the bg thread that doesnt react to `stop.set`
+        thread.join(3)
