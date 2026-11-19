@@ -22,6 +22,7 @@ sound_aliases = {
     "Dummy Output": "none",
     "MacBook Pro J314 Speakers": "speakers",
     "Nothing Headphone (1) Pro": "nhp",
+    "ap5.zero": "ap",
 }
 
 app = typer.Typer(
