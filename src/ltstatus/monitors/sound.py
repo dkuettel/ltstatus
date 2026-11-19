@@ -70,7 +70,12 @@ def monitor(event: threading.Event, aliases: dict[str, str] | None = None):
             case _ as never:
                 assert_never(never)
 
-        sinks = run_cmd(["pactl", "list", "sinks"])
+        try:
+            sinks = run_cmd(["pactl", "list", "sinks"])
+        except UnicodeDecodeError:
+            # NOTE i think i see this when there is some heavy bt connect/disconnect activity sometimes
+            # TODO or maybe this is not the real problem, maybe its because we try to kill ourselves and we only get half a utf8 data point?
+            return "utf8?"
 
         for name in re_name.finditer(sinks):
             if name["value"] == default_sink:
