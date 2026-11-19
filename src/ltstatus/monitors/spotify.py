@@ -8,10 +8,17 @@ from jeepney import DBusAddress, MatchRule, MessageType, Properties, message_bus
 from jeepney.io.blocking import open_dbus_connection
 
 
+def dotted(s: str, l: int) -> str:
+    s = s.strip()
+    if len(s) <= l:
+        return s
+    return s[:l].strip() + "…"
+
+
 def format_plain(state: None | SpotifyState) -> str:
     if state is None:
         return ""
-    return f"{state.artist} {'-' if state.playing else '#'} {state.title}"
+    return f"{dotted(state.artist, 15)} {'-' if state.playing else '#'} {dotted(state.title, 26)}"
 
 
 @dataclass
