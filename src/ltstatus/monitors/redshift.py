@@ -184,4 +184,5 @@ def monitor(event: threading.Event):
         yield fn
     finally:
         os.write(stop_write, b"stop")
-        thread.join()
+        # TODO sometimes we fail in the main loop, and try to exit here, but join is stuck
+        thread.join(3)
