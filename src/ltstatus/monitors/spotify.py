@@ -18,7 +18,7 @@ def dotted(s: str, l: int) -> str:
 def format_plain(state: None | SpotifyState) -> str:
     if state is None:
         return ""
-    return f"{dotted(state.artist, 15)} {'-' if state.playing else '#'} {dotted(state.title, 26)}"
+    return f"{dotted(state.artist, 20)} {'-' if state.playing else '#'} {dotted(state.title, 30)}"
 
 
 @dataclass
